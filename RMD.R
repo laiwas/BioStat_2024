@@ -12,3 +12,5 @@ data %>% mutate(across(!contains("E1") & !c(`Группа`, `Возраст`), f
 data %>% mutate(across(function(x) any(near(x, 0.5, tol = 0.1)), function(x) x + 1000))
 
 data %>% mutate(across(!contains("E1") & !c(`Группа`, `Возраст`, `Пол`, `Группа крови`) & !where(is.factor), function(x) x ^ 2), across(contains("E2"), function(x) x * 100))
+
+print("Hello World!")
