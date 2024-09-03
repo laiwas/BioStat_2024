@@ -1,14 +1,14 @@
 #RMD
 library("tidyverse")
 
-df = read_tsv("data/raw/data_tsv.tsv")
-df
+df = read_tsv("data/raw/data_tsv_6.tsv")
+
+data <- df
+
+data %>% mutate(across(!contains("E1"), function(x) str_c(x, " + некая строка")))
+data %>% mutate(across(!contains("E1") & !c(`Группа`, `Возраст`), function(x) x ^ 2))
 
 
-data_2 <- tibble(var_1 = "var 1", var_2 = "var 2")
-data_3 <- tibble(var_1 = "var 1", var_2 = "var 2")
+data %>% mutate(across(function(x) any(near(x, 0.5, tol = 0.1)), function(x) x + 1000))
 
-data_1 <- tibble(var_1 = 1:8) %>% mutate(id = row_number())
-data_2 <- tibble(var_2 = rnorm(10)) %>% mutate(`Subject ID` = row_number())
-
-data_1
+data %>% mutate(across(!contains("E1") & !c(`Группа`, `Возраст`, `Пол`, `Группа крови`) & !where(is.factor), function(x) x ^ 2), across(contains("E2"), function(x) x * 100))

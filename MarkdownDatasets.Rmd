@@ -1,0 +1,26 @@
+---
+title: "Datasets"
+author: "Andrey Kravets"
+date: "2024-09-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("tidyverse")
+```
+
+# GroupBy
+```{r group, include=TRUE}
+df = read_tsv("data/raw/data_tsv.tsv")
+
+df %>% group_by("Группа")
+```
+```{r group, include=TRUE}
+df = read_tsv("data/raw/data_tsv.tsv")
+
+df %>% split(~ `Группа`)
+```
+```{r}
+df %>% rowwise()
+```
