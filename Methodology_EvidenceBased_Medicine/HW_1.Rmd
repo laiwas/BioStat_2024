@@ -1,0 +1,51 @@
+---
+title: "HW_1"
+author: "Andrey Kravets"
+date: "2024-09-19"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("tidyverse")
+```
+
+## HW_1
+
+```{r load data}
+data = read_csv('../data/raw/carrental.csv')
+summary(data)
+```
+
+```{r size}
+dim(data)
+```
+
+```{r prevelance}
+#data %>% group_by(`experience`)
+group_values = c(0, 1)
+
+data %>% count(`experience`)
+```
+
+```{r risk}
+#data %>% group_by(`experience`)
+df = data %>% group_by(`experience`) %>% count(`accident`) %>% mutate(risk = n / sum(n) * 100)
+df
+```
+
+```{r incidence rate}
+#data %>% group_by(`experience`)
+df = data %>% mutate(time_at_risk_days = stop - start) %>% group_by(experience) %>% summarize(total_accident = sum(accident), total_time_years = sum(time_at_risk_days)/365) %>% mutate(IR = total_accident / total_time_years)
+df 
+```
+
+```{r double check}
+#data %>% group_by(`experience`)
+data
+```
+
+```{r double check}
+#data %>% group_by(`experience`)
+data %>% filter(`experience` != 1) %>% mutate(time_at_risk_days = stop - start) %>% select(`time_at_risk_days`) %>% sum()
+```
