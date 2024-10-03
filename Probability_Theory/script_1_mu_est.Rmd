@@ -29,6 +29,7 @@ ggplot(df, aes(x=values, y=Pr)) +
   theme_bw()
 
 ```
+
 ## Характеристики прироста
 
 ```{r characteristics}
@@ -46,6 +47,7 @@ standard_deviation <- sqrt(variance)
 print(standard_deviation)
 
 ```
+
 ## Однократная оценка по выборке
 
 ```{r sample_1}
@@ -91,6 +93,7 @@ ggplot(df_sample_mean, aes(x = mean_Hg_upd)) +
   geom_histogram(color = 'black', fill = 'white', binwidth = 0.2) +
   theme_bw()
 
+print("asd")
 ```
 
 ## Количественные и качественные итоги

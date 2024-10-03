@@ -14,7 +14,7 @@ library(tidyverse)
 ## Data reading
 
 ```{r dataLoading}
-hogwarts <- read_csv("data/hogwarts_2024.csv")
+hogwarts <- read_csv("../data/raw/Visualization_Data/hogwarts_2024.csv")
 hogwarts |> head()
 ```
 
@@ -122,7 +122,7 @@ ggplot(hogwarts)+
 ```{r}
 ggplot(hogwarts)+
   geom_bar(aes(x = fct_infreq(house), 
-               fill = sex), 
+               fill = fct_infreq(sex)), 
            colour = "black", 
            position = "dodge2")+ 
   scale_x_discrete(name = "house")+

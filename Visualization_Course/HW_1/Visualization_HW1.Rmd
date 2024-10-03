@@ -23,7 +23,7 @@ library(tidyverse)
 # Чтение данных
 
 ```{r dataLoading}
-hogwarts <- read_csv("../data/raw/Visualization_Data/hogwarts_2024.csv")
+hogwarts <- read_csv("../../data/raw/Visualization_Data/hogwarts_2024.csv")
 hogwarts |> head()
 ```
 
