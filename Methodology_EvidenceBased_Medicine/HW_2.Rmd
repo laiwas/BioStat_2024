@@ -1,0 +1,162 @@
+---
+title: "HW_2"
+author: "Andrey Kravets"
+date: "2024-10-08"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("tidyverse")
+library(rlang)
+
+```
+
+# Меры Ассоциаций Домашнее Задание
+
+## Задание 1
+
+Считываем данные:
+
+```{r load data}
+data = read_csv('../data/methodology/diabetes.csv')
+summary(data)
+```
+
+Сделаем сводную таблицу:
+
+```{r pivot_table}
+# Count occurrences for each IMT and Диабет combination
+pivot_table <- data %>%
+  count(`ИМТ`, `Диабет`) %>%
+  pivot_wider(names_from = `Диабет`, values_from = n, values_fill = 0) 
+
+# Print the pivot table
+print(pivot_table)
+```
+
+Посчитаем риски:
+
+```{r risk_imt_high}
+df = data %>% group_by(`ИМТ`) %>% count(`Диабет`) %>% mutate(risk = n / sum(n) * 100)
+df
+```
+
+Получается Risk(Диабет-Есть \| Высокий/Нормальный ИМТ) = 59% и 26% соответственно. Таким образом Relative risk:
+
+```{r relative}
+rr = 59.29/26.44
+
+print(paste("Relative Risk ", as.character(round(rr, 2))))
+```
+
+```{r difference}
+rd = 59.29 - 26.44
+print(paste("Risk Difference ", as.character(round(rd, 2)), "%"))
+```
+
+Получилось: RR=2.24, RD=32.85%. Следовательно, по нашим данным и анализу, Высокий ИМТ ассоциирован с Диабетом 2-го типа. Важно, что мы смогли только найти ассоциацию, причинно-следственную связь здесь мы не сможем анализировать.
+
+## Задание 2
+
+Считываем данные:
+
+```{r pneumonia}
+data_pneu = read_csv('../data/methodology/pneumonia.csv')
+head(data_pneu)
+```
+
+### Торговый центр
+
+Рассчитаем шансы (Odds ratio) для локации "Торговый центр". Сначала сделаем таблицу сопряженности:
+
+```{r pivot_pneumonia}
+# Таблица сопряженности
+group = "Торговый центр"
+location_sym <- sym(group)
+
+pivot_table <- data_pneu %>%
+  count(`Группа`, !!location_sym,) %>%
+  pivot_wider(names_from = `Группа`, values_from = n, values_fill = 0) 
+
+print(pivot_table)
+```
+
+Затем посчитаем OR (Болен/Контроль \| Торговый центр):
+
+```{r or_t}
+# calculate a b c d
+a <- pivot_table %>% filter(!!location_sym == "Да") %>% pull(Пневмония)  # Pneumonia with "Да"
+c <- pivot_table %>% filter(!!location_sym == "Нет") %>% pull(Пневмония) # Pneumonia with "Нет"
+b <- pivot_table %>% filter(!!location_sym == "Да") %>% pull(Контроль)    # Control with "Да"
+d <- pivot_table %>% filter(!!location_sym == "Нет") %>% pull(Контроль)   # Control with "Нет"
+
+# Calculate odds ratio
+odds_ratio <- (a / b) / (c / d)
+print(odds_ratio)
+```
+
+Получили OR(Болен vs. Здоров \| Торговый центр) = 1.55
+
+### Ресторан
+
+Все те же операции проделаем для группы сопряженности "Ресторан":
+
+```{r pivot_r}
+# Таблица сопряженности
+group = "Ресторан"
+location_sym <- sym(group)
+
+pivot_table <- data_pneu %>%
+  count(`Группа`, !!location_sym,) %>%
+  pivot_wider(names_from = `Группа`, values_from = n, values_fill = 0) 
+
+print(pivot_table)
+```
+
+```{r or_r}
+# calculate a b c d
+a <- pivot_table %>% filter(!!location_sym == "Да") %>% pull(Пневмония)  # Pneumonia with "Да"
+c <- pivot_table %>% filter(!!location_sym == "Нет") %>% pull(Пневмония) # Pneumonia with "Нет"
+b <- pivot_table %>% filter(!!location_sym == "Да") %>% pull(Контроль)    # Control with "Да"
+d <- pivot_table %>% filter(!!location_sym == "Нет") %>% pull(Контроль)   # Control with "Нет"
+
+# Calculate odds ratio
+odds_ratio <- (a / b) / (c / d)
+print(odds_ratio)
+```
+
+Получили OR(Болен vs. Здоров \| Ресторан) = 1.11
+
+### Общественные мероприятия
+
+Все те же операции проделаем для группы сопряженности "Общественные мероприятия":
+```{r pivot_o}
+# Таблица сопряженности
+group = "Общественные мероприятия"
+location_sym <- sym(group)
+
+pivot_table <- data_pneu %>%
+  count(`Группа`, !!location_sym,) %>%
+  pivot_wider(names_from = `Группа`, values_from = n, values_fill = 0) 
+
+print(pivot_table)
+```
+
+```{r or_o}
+# calculate a b c d
+a <- pivot_table %>% filter(!!location_sym == "Да") %>% pull(Пневмония)  # Pneumonia with "Да"
+c <- pivot_table %>% filter(!!location_sym == "Нет") %>% pull(Пневмония) # Pneumonia with "Нет"
+b <- pivot_table %>% filter(!!location_sym == "Да") %>% pull(Контроль)    # Control with "Да"
+d <- pivot_table %>% filter(!!location_sym == "Нет") %>% pull(Контроль)   # Control with "Нет"
+
+# Calculate odds ratio
+odds_ratio <- (a / b) / (c / d)
+print(odds_ratio)
+```
+
+Получили OR(Болен vs. Здоров \| Общественные мероприятия) = 0.98
+
+### Интерпретация
+
+По полученным результатам видим, что шанс заболеть пневмонией возрастал у тех, кто посещал "Торговый центр", т.о. "возбудитель" пневмонии, возможно, прячется в Торговом центре.
