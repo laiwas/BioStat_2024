@@ -438,7 +438,7 @@ cleaned_data %>% select(all_of(numeric_col), (Stroke_Status)) %>%
 Да, конечно, надо было все-таки бинарные колонки в факторы перевести
 (такие как Stroke_Status), но ничего
 
-## Категориальные+Бинарные переменные
+## Бинарные переменные
 
 1)  Сделайте подходящие визуализации категориальных переменных.
     Обоснуйте, почему выбрали именно этот тип.
@@ -470,6 +470,25 @@ data_for_graph %>%
                values_to = "Value",
                cols = -Stroke_Status) %>%
   ggplot(aes(x = Stroke_Status, fill=Value)) +
+  geom_bar(position = "dodge") +
+  scale_fill_manual(values = brewer.pal(n = 2, name = "Dark2")) +
+  facet_wrap(~Binary_Column) +
+  theme_custom() +
+  labs(
+    title = "Bar Chart for Binary Columns",
+    x = "Stroke Status",
+    y = "Count"
+  )
+
+```
+
+```{r}
+
+data_for_graph %>%
+  pivot_longer(names_to = "Binary_Column",
+               values_to = "Value",
+               cols = -Stroke_Status) %>%
+  ggplot(aes(x = Stroke_Status, fill=Value)) +
   geom_bar(position = "fill") +
   scale_fill_manual(values = brewer.pal(n = 2, name = "Dark2")) +
   facet_wrap(~Binary_Column) +
@@ -482,6 +501,8 @@ data_for_graph %>%
 
 ```
 
+
+## Категориальные переменные 
 ```{r, fig.height=8, fig.width=8}
 library(ggforce)
 
@@ -617,32 +638,61 @@ QQ-плот: Этот метод предпочтительнее при бол�
     выберите нужный критерий и кратко обоснуйте его выбор в
     комментариях.
 
+### Количественные переменные
 ```{r}
+# Mann-Whitney
+numeric_col = c("Age", "BMI" ,"Average_Glucose_Level")
+data_to_check = cleaned_data %>% 
+  select(all_of(numeric_col), Stroke_Status) %>%
+  pivot_longer(cols=numeric_col, names_to="Numeric_col", values_to="Values") %>%
+  group_by(Numeric_col) %>%
+  summarise(
+    MW_p_value = wilcox.test(Values ~ Stroke_Status)$p.value
+  )
 
+data_to_check
+```
+Для количественных переменных прогонем "обычный" тест Манна-Уитни. По результатам видим, что для групп у кого был инсульт и у кого не было, есть стат-значимые разницы по Возрасту, уровню Глюкозы и ИМТ.
+
+### Бинарные переменные
+Для бинарных переменных прогонем Точный Тест Фишера:
+```{r}
+# Mann-Whitney
+binary_columns = c("Hypertension", "Heart_Disease", "Ever_Married")
+
+data_for_graph = cleaned_data %>% select(all_of(binary_columns), (Stroke_Status)) %>%
+  mutate(Stroke_Status = as.factor(Stroke_Status),
+         Hypertension = as.factor(Stroke_Status),
+         Heart_Disease = as.factor(Heart_Disease),
+         Ever_Married = as.factor(Ever_Married))
+
+data_for_graph %>% 
+  select(all_of(binary_columns), Stroke_Status) %>%
+  pivot_longer(cols=binary_columns, names_to="Binary_col", values_to="Level") %>%
+  group_by(Binary_col) %>%
+  summarise(
+    Fisher_exact_p_value = fisher.test(table(Level, Stroke_Status))$p.value
+  )
+
+#data_to_check
 ```
 
-## Далее идут **необязательные** дополнительные задания, которые могут принести вам дополнительные баллы в том числе в случае ошибок в предыдущих
 
-### Корреляционный анализ
-
-1)  Создайте корреляционную матрицу с визуализацией и поправкой на
-    множественные сравнения. Объясните, когда лучше использовать
-    корреляционные матрицы и в чём минусы и плюсы корреляционных
-    исследований.
+### (Не успелось) Категориальные переменные
+Тут применим хи-квадрат
 
 ```{r}
+# Mann-Whitney
+data_for_сheck = cleaned_data %>% select(where(is.factor), (Stroke_Status)) %>%
+  mutate(Stroke_Status = as.factor(Stroke_Status))
 
+data_for_сheck %>% 
+  pivot_longer(cols=-Stroke_Status, names_to="Cat_col", values_to="Level") %>%
+  group_by(Cat_col) %>%
+  summarise(
+    Chi_squared_p_value = chisq.test(table(Level, Stroke_Status))$p.value
+  )
 
-
-```
-
-### Моделирование
-
-1)  Постройте регрессионную модель для переменной **stroke**. Опишите
-    процесс построения
-
-```{r}
-
-
-
+#write.csv(cleaned_data, file = "cleaned_data.csv")
+#data_to_check
 ```
