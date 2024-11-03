@@ -1,0 +1,728 @@
+---
+title: "MidTerm_Project_Team5"
+author: "Andrey Kravets"
+date: "2024-11-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(summarytools)
+library(GGally)
+library(RColorBrewer)
+library(ggpubr)
+library(reshape2)
+library(pheatmap)
+library(readxl)
+library(xlsx)
+library(ggplot2)
+library(gtsummary)
+library(flextable)
+```
+
+# Чтение данных
+
+Датасет Гипертензии в Доминикане
+
+```{r}
+data = read_tsv("./DominicanHTN.tsv")
+# read.xlsx("./DominicanHTN.xls", sheetIndex, header=TRUE)
+data_sort_all <- data %>%
+  mutate(hypertension_group = case_when(
+    (SBP >= 140 & SBP < 160) | (DBP >= 90 & DBP < 100) ~ "1st degree",
+    (SBP >= 160 & SBP < 180) | (DBP >= 100 & DBP < 110) ~ "2nd degree",
+    SBP >= 180 | DBP > 110 ~ "3rd degree",
+    SBP >= 140 & DBP < 90 ~ "Isolated systolic hpt",
+    SBP < 90 | DBP < 60 ~ "Hypotension",
+    TRUE ~ "Normal"  # Условие по умолчанию для нормального давления
+  )) %>% 
+  mutate(hypertension_group = factor(hypertension_group, 
+                                     levels = c("Normal",
+                                                "1st degree", 
+                                                "2nd degree", 
+                                                "3rd degree",
+                                                "Hypotension",
+                                                "Isolated systolic hpt"))) %>%
+  mutate(Gender = factor(Gender, 
+                                     levels = c("Female",
+                                                "Male"))) %>%
+  mutate(age_group = cut(Age, 
+                        breaks = c(-Inf, 30, 45, 65, Inf), 
+                         labels = c("Young", "Middle-aged", 
+                                    "Older-Adults", "Seniors")))
+
+summary(data_sort_all)
+```
+
+```{r}
+data_sort = data_sort_all %>% filter(hypertension_group != "Hypotension", 
+         #hypertension_group != "Normal", 
+         hypertension_group != "Isolated systolic hpt") %>% 
+  mutate(hypertension_group = factor(hypertension_group, 
+                                     levels = c("Normal",
+                                                "1st degree", 
+                                                "2nd degree", 
+                                                "3rd degree")))
+summary(data_sort)
+```
+
+
+## Сделаем и сохраним сводную таблицу по нашим отфильтрованным данным
+```{r}
+summary_table <- data_sort %>% select(age_group, Gender, hypertension_group, Village) %>%
+  tbl_summary(
+    by = hypertension_group,  # Group by Hypertension
+    statistic = list(all_continuous() ~ "{mean} ({sd})", all_categorical() ~ "{n} / {N} ({p}%)"),  # Specify summary stats
+    label = list(Gender ~ "Gender",
+                 age_group ~ "Age Group")) %>%  # Customize labels
+  add_p() %>%  # Add p-values for group comparisons
+  modify_header(label = "**Variable**") %>%  # Customize header
+  modify_spanning_header(all_stat_cols() ~ "**Hypertension Group**")
+
+summary_table %>%
+  as_flex_table() %>%
+  flextable::save_as_html(path = "summary_table.html")
+```
+
+## Посмотрим на датасет чуть подробнее
+```{r}
+glimpse(data_sort)
+```
+
+Ищем в числовых колонках (с форматов doublefloat) N/A:
+
+```{r}
+data_sort %>%
+  select(where(is.numeric)) %>%
+  summarise_all(function(x) sum(is.na(.)))
+```
+
+Видим, что в исходных числовых и бинарных колонках, нет N/A
+
+Ищем N/A в категориальных(строковых) колонках:
+
+```{r}
+unique_values_each <- data_sort %>%
+  select(where(is.character) | where(is.factor)) %>%
+  summarise_all(~ list(unique(.)))
+#unique_values_each
+print(unique_values_each %>% pull(Village))
+print(unique_values_each %>% pull(Gender))
+print(unique_values_each %>% pull(hypertension_group))
+```
+
+None нигде нет.
+
+# Визуализация пункт 2 и 3
+
+```{r}
+theme_custom <- function(){
+  theme_bw() %+replace%
+  theme(
+    axis.text = element_text(size = 18),
+    axis.title.y = element_text(size = 20, angle=90),
+    axis.title.x = element_text(size = 22),
+    legend.text = element_text(size = 18),
+    legend.title = element_text(size = 20),
+  )
+}
+```
+
+
+### Возраст
+
+```{r, fig.height=6, fig.width=6}
+data_sort %>% filter(hypertension_group=="Normal") %>% ggplot() +
+  geom_histogram(aes(x=Age), alpha=0.7, bins=30,
+                 color="black", fill='darkblue') +
+  # scale_fill_manual(values = c("Male" = "brown", 
+  #                               "Female" = "lightblue")) +
+  scale_y_continuous(name = "Count") +
+  labs(fill='Gender') +
+  theme_custom()
+```
+
+```{r, fig.height=6, fig.width=6}
+data_sort %>% ggplot(aes(sample = Age)) +
+  stat_qq(color='darkblue') +
+  stat_qq_line(color='red') +
+  labs(title = "QQ Plot",
+       x = "Theoretical Quantiles",
+       y = "Sample Quantiles") +
+  theme_custom()
+```
+
+# Визуализация пункт 3
+```{r, fig.height=8}
+display.brewer.all()
+```
+
+## Возраст и Пол
+
+```{r, echo=FALSE, fig.width=5, fig.height=5}
+data_sort %>% ggplot() +
+  geom_boxplot(aes(x=Gender, y=Age, fill=Gender)) +
+  scale_fill_manual(values = c("Male" = "brown", 
+                                "Female" = "lightblue")) +
+  theme_custom()
+```
+
+```{r, echo=FALSE, fig.width=5, fig.height=5}
+data_sort %>% ggplot() +
+  geom_bar(aes(x=Gender, fill=age_group), position='fill') +
+  scale_fill_manual(values = brewer.pal(n = 4, name = "BuPu")) +
+  scale_y_continuous(name = "Percent", labels = scales::percent_format()) + 
+  labs(fill='Age Group')+
+  theme_custom()
+```
+
+Есть ассоциация возраста и пола
+
+```{r, echo=FALSE, fig.width=5, fig.height=5}
+data_sort %>% select(Age, Gender) %>% summarise(MW_p_value = wilcox.test(Age ~ Gender)$p.value)
+```
+
+## Барплоты
+
+### Деревени
+
+Связь с гипертензией
+
+```{r, echo=FALSE, fig.width=8, fig.height=6}
+data_sort %>% ggplot() +
+  geom_bar(aes(x=Village, fill=hypertension_group), position='fill') +
+  labs(fill='Hypertension') +
+  scale_y_continuous(name = "Percent", labels = scales::percent_format()) +
+  #scale_fill_manual(values = brewer.pal(n = 4, name = "Reds")) +
+  scale_fill_manual(values=c("Normal" = "cadetblue2", 
+                             "1st degree"="#FEE5D9",
+                             "2nd degree"="#FB6A4A",
+                             "3rd degree"="#CB181D"
+                             )
+                  ) +
+  theme_custom() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Есть деревни без 3rd degree гипертензии.
+
+```{r, echo=FALSE, fig.width=8, fig.height=6}
+data_sort %>% filter(hypertension_group != "Normal") %>% ggplot() +
+  geom_bar(aes(x=Village, fill=hypertension_group)) +
+  scale_fill_manual(values=c("Normal" = "cadetblue2", 
+                             "1st degree"="#FEE5D9",
+                             "2nd degree"="#FB6A4A",
+                             "3rd degree"="#CB181D"
+                             )) +
+  labs(fill='Hypertension') +
+  scale_y_continuous(name = "Count") +
+  theme_custom() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Связь с полом
+
+```{r, echo=FALSE, fig.width=8, fig.height=6}
+data_sort %>% ggplot() +
+  geom_bar(aes(x=Village, fill=Gender), position='fill') +
+  scale_fill_manual(values=c("Male" = "brown", 
+                                "Female" = "lightblue")
+                    ) +
+  labs(fill='Gender') +
+  scale_y_continuous(name = "Percent", labels = scales::percent_format()) +
+  theme_custom() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Связь с группой возрастом
+
+```{r, echo=FALSE, fig.width=8, fig.height=6}
+data_sort %>% ggplot() +
+  geom_bar(aes(x=Village, fill=age_group), position='fill') +
+  labs(fill='Hypertension') +
+  scale_y_continuous(name = "Percent", labels = scales::percent_format()) +
+  scale_fill_manual(values = brewer.pal(n = 4, name = "BuPu")) +
+  # scale_fill_manual(values=c("Normal" = "cadetblue2", 
+  #                            "1st degree"="#FEE5D9",
+  #                            "2nd degree"="#FB6A4A",
+  #                            "3rd degree"="#CB181D"
+  #                            )
+                  # ) +
+  theme_custom() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r, echo=FALSE, fig.width=8, fig.height=6}
+data_sort %>% ggplot() +
+  geom_bar(aes(x=age_group, fill=hypertension_group)) +
+  scale_fill_manual(values=c("Normal" = "cadetblue2", 
+                             "1st degree"="#FEE5D9",
+                             "2nd degree"="#FB6A4A",
+                             "3rd degree"="#CB181D"
+                             )) +
+  labs(fill='Hypertension') +
+  #scale_y_continuous(name = "Percent", labels = scales::percent_format()) +
+  theme_custom() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+### Gender vs. Hypertenstion
+
+```{r, echo=FALSE, fig.width=8, fig.height=6}
+data_sort %>% ggplot() +
+  geom_bar(aes(x=Gender, fill=hypertension_group), position='fill') +
+  scale_fill_manual(values=c("Normal" = "cadetblue2", 
+                             "1st degree"="#FEE5D9",
+                             "2nd degree"="#FB6A4A",
+                             "3rd degree"="#CB181D"
+                             )
+                    ) +
+  labs(fill='Hypertension') +
+  scale_y_continuous(name = "Percent", labels = scales::percent_format()) +
+  theme_custom() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r, echo=FALSE, fig.width=8, fig.height=6}
+data_sort %>% ggplot() +
+  geom_bar(aes(x=age_group, fill=hypertension_group)) +
+  scale_fill_manual(values=c("Normal" = "cadetblue2", 
+                             "1st degree"="#FEE5D9",
+                             "2nd degree"="#FB6A4A",
+                             "3rd degree"="#CB181D"
+                             )
+                    ) +
+  labs(fill='Hypertension') +
+  #scale_y_continuous(name = "Percent", labels = scales::percent_format()) +
+  theme_custom() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+### Гистограммы
+
+```{r, echo=FALSE, fig.width=10, fig.height=8}
+data_sort %>% filter(hypertension_group=="Normal") %>% ggplot() +
+  geom_histogram(aes(x=Age, fill=hypertension_group), alpha=0.7, bins=15,
+                 color="black") +
+  facet_grid(Gender ~ hypertension_group) +
+  scale_fill_manual(values=c("Normal" = "cadetblue2", 
+                             "1st degree"="#FEE5D9",
+                             "2nd degree"="#FB6A4A",
+                             "3rd degree"="#CB181D"
+                             )) +
+  labs(fill='Hypertenstion') +
+  theme_custom()
+```
+
+```{r, echo=FALSE, fig.width=12, fig.height=8}
+data_sort  %>% filter(hypertension_group!="Normal") %>% ggplot() +
+  geom_histogram(aes(x=Age, fill=hypertension_group), alpha=1, bins=10,
+                 color="black") +
+  facet_grid(Gender ~ hypertension_group) +
+  scale_fill_manual(values=c("Normal" = "cadetblue2", 
+                             "1st degree"="#FEE5D9",
+                             "2nd degree"="#FB6A4A",
+                             "3rd degree"="#CB181D"
+                             )) +
+  labs(fill='Hypertenstion') +
+  theme_custom()
+```
+
+```{r, echo=FALSE, fig.width=12, fig.height=12}
+data_sort  %>% ggplot() +
+  geom_histogram(aes(x=Age, fill=Village), alpha=1, bins=10,
+                 color="black") +
+  facet_wrap(Village ~ .) +
+  # scale_fill_manual(values=c("Normal" = "cadetblue2", 
+  #                            "1st degree"="#FEE5D9",
+  #                            "2nd degree"="#FB6A4A",
+  #                            "3rd degree"="#CB181D"
+  #                            )) +
+  labs(fill='Village', x='Count') +
+  theme_custom()
+```
+
+```{r, echo=FALSE, fig.width=12, fig.height=8}
+data_sort %>% ggplot() +
+  geom_boxplot(aes(x = hypertension_group, y = Age,
+                  fill=Gender), stroke=0.01,
+              position = position_dodge(width = 0.75)) +
+  #scale_shape_manual(values = c(16, 17)) +
+  scale_fill_manual(values = c("Male" = "brown", 
+                                "Female" = "lightblue")) +
+  labs(x='Hypertension Group') +
+  theme_custom()
+```
+
+```{r, echo=FALSE, fig.width=12, fig.height=8}
+data_sort  %>%
+  ggplot(aes(x = hypertension_group, y = Age)) +
+  geom_jitter(aes(fill = hypertension_group, shape = Gender),
+              color = "black",  # Черный контур
+              width = 0.15, height = 0, alpha = 0.8, size = 6, stroke = 1) +
+  scale_shape_manual(values = c("Female" = 21, "Male" = 24)) +  # 21 - круг, 24 - треугольник
+  scale_fill_manual(values = c(
+    "Normal pressure" = "cadetblue2",
+    "1st degree" = "#FEE5D9",
+    "2nd degree" = "#FB6A4A",
+    "3rd degree" = "#CB181D"
+  )) +
+  theme_custom()
+```
+
+
+## Графики от Вани
+
+### Для Пункта 3 - Бар-плот Age vs. Hypertension Group
+
+```{r, echo=FALSE, fig.width=10, fig.height=8}
+data_sort %>%
+  group_by(age_group, hypertension_group) %>%
+  summarise(n = n()) %>%
+  ggplot(aes(x = age_group, y = n, fill = hypertension_group)) +
+  geom_bar(stat = "identity", position = "stack") +
+  geom_text(aes(label = n), 
+            position = position_stack(vjust = 0.5),  
+            color = "black", size = 5) + 
+  labs(title = "Number of Patients by Age Groups and Hypertension Groups",
+       x = "Age Group",
+       y = "Number of Patients",
+       fill = "Hypertension group") +
+  theme_minimal(base_size = 24) +
+  scale_fill_manual(values = c("Normal" = "cadetblue2", 
+                               "1st degree" = "#FEE5D9", 
+                               "2nd degree" = "#FCAE91", 
+                               "3rd degree" = "#FB6A4A")) +
+  theme(plot.title = element_text(hjust = 0.5),
+        panel.border = element_rect(colour = "black", fill = NA, size = 1))
+
+```
+
+```{r, echo=FALSE, fig.width=10, fig.height=8}
+data_sort %>%
+  group_by(age_group, hypertension_group) %>%
+  summarise(n = n()) %>%
+  mutate(percent = n / sum(n) * 100) %>%
+  ggplot(aes(x = age_group, y = percent, fill = hypertension_group)) +
+  geom_bar(stat = "identity", position = "stack") +
+  geom_text(aes(label = round(percent, 1)),  
+            position = position_stack(vjust = 0.5),  
+            color = "black", size = 5) + 
+  labs(title = "Percentage of Patients by Age Groups and Hypertension Groups",
+       x = "Age Group",
+       y = "Percentage",
+       fill = "Hypertension group") +
+  theme_minimal(base_size = 20) +
+  scale_fill_manual(values = c("Normal" = "cadetblue2", 
+                               "1st degree" = "#FEE5D9", 
+                               "2nd degree" = "#FCAE91", 
+                               "3rd degree" = "#FB6A4A"))  +
+  theme(plot.title = element_text(hjust = 0.5),
+        panel.border = element_rect(colour = "black", fill = NA, size = 1))
+```
+### Для Пункта 2 - Статистика по деревням
+```{r, echo=FALSE, fig.width=15, fig.height=8}
+ggplot(data_sort, aes(x = Village, fill = Village)) +
+  geom_bar() +
+  labs(title = "Number of patients in different villages", x = "Village", y = "Number of patients") +
+  theme_minimal(base_size = 24) +
+  theme(legend.position = "none") +
+  theme(plot.title = element_text(hjust = 0.5),
+        panel.border = element_rect(colour = "black", fill = NA, size = 1))
+
+```
+
+```{r, echo=FALSE, fig.width=15, fig.height=8}
+data_sort %>%
+  group_by(Village, hypertension_group) %>%
+  summarise(n = n()) %>%
+  mutate(percent = n / sum(n) * 100) %>% 
+  ggplot(aes(x = Village, y = percent, fill = hypertension_group)) +
+  geom_bar(stat = "identity", position = "stack") +
+  geom_text(aes(label = round(percent, 1)),  # Округляем до 1 знака после запятой
+            position = position_stack(vjust = 0.5),  # Центрируем текст в столбцах
+            color = "black", size = 5) +  # Цвет и размер текста
+  labs(title = "Percentage of Patients by Age Groups and Hypertension Groups",
+       x = "Age Group",
+       y = "Percentage",
+       fill = "Hypertension group") +
+  theme_minimal(base_size = 20) +
+  scale_fill_manual(values = c("Normal" = "cadetblue2", 
+                               "1st degree" = "#FEE5D9", 
+                               "2nd degree" = "#FCAE91", 
+                               "3rd degree" = "#FB6A4A"))  +
+  theme(plot.title = element_text(hjust = 0.5),
+        panel.border = element_rect(colour = "black", fill = NA, size = 1))
+
+
+```
+
+```{r, echo=FALSE, fig.width=15, fig.height=8}
+data_sort %>%
+  group_by(Village, hypertension_group) %>%
+  summarise(n = n()) %>%
+  ggplot(aes(x = Village, y = n, fill = hypertension_group)) +
+  geom_bar(stat = "identity", position = "stack") +
+  geom_text(aes(label = n), 
+            position = position_stack(vjust = 0.5),  
+            color = "black", size = 5) + 
+  labs(title = "Number of Patients by Age Groups and Hypertension Groups",
+       x = "Age Group",
+       y = "Number of Patients",
+       fill = "Hypertension group") +
+  theme_minimal(base_size = 24) +
+  scale_fill_manual(values = c("Normal" = "cadetblue2", 
+                               "1st degree" = "#FEE5D9", 
+                               "2nd degree" = "#FCAE91", 
+                               "3rd degree" = "#FB6A4A")) +
+  theme(plot.title = element_text(hjust = 0.5),
+        panel.border = element_rect(colour = "black", fill = NA, size = 1))
+
+```
+
+### Гистограммы по возрасту
+
+```{r, echo=FALSE, fig.width=10, fig.height=8}
+# Гистограмма распределения
+data_sort %>% filter(hypertension_group != "Normal") %>% ggplot(aes(x = Age, fill = hypertension_group)) +
+  geom_histogram(position = "dodge", 
+                 binwidth = 2 * IQR(data_sort$Age)/  # Правило Фридмана-Дьякониса для определения числа столбцов гистограммы
+                   length(data_sort$Age)^(1/3), color='black') +
+  labs(title = "Age distribution by hypertension groups") +
+  facet_wrap(~ Gender) +
+  theme(text = element_text(size = 14),
+        plot.title = element_text(hjust = 0.5)) +
+  scale_fill_manual(values = c("1st degree" = "#FEE5D9", 
+                               "2nd degree" = "#FCAE91", 
+                               "3rd degree" = "#FB6A4A")) +
+  theme_custom()
+```
+
+# Стат.тесты
+
+## Age vs. Hypertension
+
+```{r}
+data_part = data_sort %>% filter(age_group!="Young",
+                                 hypertension_group!='Normal') %>% droplevels()
+  # mutate(age_group = factor(age_group, 
+  #                                                                                 levels=c("Middle-aged", "Older-Adults", "Seniors")))
+
+gender_hypertension_table <- table(data_part$age_group, 
+                                   data_part$hypertension_group)
+print(gender_hypertension_table)
+chisq.test(gender_hypertension_table)
+```
+
+```{r}
+gender_hypertension_table 
+```
+
+## Sex vs. village
+
+```{r}
+# data_part = data_sort %>% filter(age_group!="Young",
+#                                  hypertension_group!='Normal') %>% droplevels()
+  # mutate(age_group = factor(age_group, 
+  #                                                                                 levels=c("Middle-aged", "Older-Adults", "Seniors")))
+
+gender_hypertension_table <- table(data_sort$Gender, 
+                                   data_sort$Village)
+print(gender_hypertension_table)
+chisq.test(gender_hypertension_table)
+```
+
+```{r}
+gender_hypertension_table 
+```
+
+## Anova Age vs. Village
+
+```{r}
+# data_part = data_sort %>% filter(age_group!="Young",
+#                                  hypertension_group!='Normal') %>% droplevels()
+  # mutate(age_group = factor(age_group, 
+  #                                                                                 levels=c("Middle-aged", "Older-Adults", "Seniors")))
+
+res = data_sort %>% select(Age, Village) %>%
+  aov(Age ~ Village, data=.)
+
+summary(res)
+```
+
+## Two-way ANOVA Age vs. Gender\*Hypertension
+
+```{r}
+# data_part = data_sort %>% filter(age_group!="Young",
+#                                  hypertension_group!='Normal') %>% droplevels()
+  # mutate(age_group = factor(age_group, 
+  #                                                                                 levels=c("Middle-aged", "Older-Adults", "Seniors")))
+
+res = data_sort %>% select(Age, hypertension_group, Gender) %>%
+  aov(Age ~ hypertension_group*Gender, data=.)
+
+summary(res)
+```
+## Cтат.тесты от ребят
+### Ваня
+```{r}
+table_gender <- table(data_sort$Gender, data_sort$hypertension_group)
+
+chi_square_gender <- chisq.test(table_gender)
+print(chi_square_gender)
+```
+```{r}
+table_village <- table(data_sort$Village, data_sort$hypertension_group)
+chi_square_village <- chisq.test(table_village)
+print(chi_square_village)
+```
+
+```{r}
+model_logistic <- glm(hypertension_group ~ Gender + Village, data = data_sort, family = "binomial")
+summary(model_logistic)
+```
+### Лена
+```{r}
+# Elena
+data_hypertension <- data_sort %>%
+  filter(hypertension_group != "Normal pressure")
+
+# Нулевая гипотеза: средний возраст между группами с разной степенью гипертензии одинаков
+# Альтернативная гипотеза: средний возраст между группами с разной степенью гипертензии различается
+# Выполнение однофакторного дисперсионного анализа для возраста по группам гипертензии
+anova_age <- aov(Age ~ hypertension_group, data = data_hypertension)
+summary(anova_age)
+
+# Построение графика
+ggplot(data_hypertension, aes(x = hypertension_group, y = Age)) +
+  geom_boxplot(fill = "lightblue", color = "darkblue") +
+  theme_minimal() +
+  labs(title = "ANOVA: Distribution of Age Groups by Hypertension Level",
+       x = "Hypertension Level",
+       y = "Age")
+
+# Проведение теста Тьюки после ANOVA
+tukey_age <- TukeyHSD(anova_age)
+print(tukey_age)
+
+# Преобразование результатов теста Тьюки в data frame
+tukey_data <- as.data.frame(tukey_age$hypertension_group)
+tukey_data$Comparison <- rownames(tukey_data)
+
+ggplot(tukey_data, aes(x = Comparison, y = diff)) +
+  geom_point(size = 3, color = "darkblue") +
+  geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.2, color = "darkred") +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey") +
+  theme_minimal() +
+  labs(title = "Tukey HSD Test: Pairwise Comparisons",
+       x = "Comparisons",
+       y = "Difference in Means (with 95% CI)") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+``` {r}
+
+# Анализ связи между полом и группой гипертензии
+# Таблица сопряженности для пола и группы гипертензии
+gender_hypertension_table <- table(data_hypertension$Gender, data_hypertension$hypertension_group)
+print(gender_hypertension_table)
+
+# Теста Фишера для таблицы пола и групп гипертензии
+chisq_test_gender <- suppressWarnings(chisq.test(gender_hypertension_table))
+print(chisq_test_gender)
+
+# Создание таблицы сопряженности для возрастных групп и группы гипертензии
+age_group_table <- table(data_hypertension$age_group, data_hypertension$hypertension_group)
+print(age_group_table)
+
+# Проведение хи-квадрат теста для оценки зависимости
+chisq_test_age_group <- suppressWarnings(chisq.test(age_group_table))
+print(chisq_test_age_group)
+
+```
+
+### Вика
+``` {r}
+
+# Анализ связи между полом и группой гипертензии
+# Таблица сопряженности для пола и группы гипертензии
+gender_hypertension_table <- table(data_hypertension$Gender, data_hypertension$hypertension_group)
+print(gender_hypertension_table)
+
+# Теста Фишера для таблицы пола и групп гипертензии
+chisq_test_gender <- suppressWarnings(chisq.test(gender_hypertension_table))
+print(chisq_test_gender)
+
+# Создание таблицы сопряженности для возрастных групп и группы гипертензии
+age_group_table <- table(data_hypertension$age_group, data_hypertension$hypertension_group)
+print(age_group_table)
+
+# Проведение хи-квадрат теста для оценки зависимости
+chisq_test_age_group <- suppressWarnings(chisq.test(age_group_table))
+print(chisq_test_age_group)
+
+```
+
+```{r}
+library(knitr)  # Для отображения таблицы
+
+data_sort_with_NP = data_sort
+villages <- unique(data_sort_with_NP$Village)
+plots <- list()
+#тест Шапиро-Уилка
+shapiro_results <- data.frame(
+  Village = character(),
+  Gender = character(),
+  Shapiro_p_value = numeric(),
+  stringsAsFactors = FALSE
+)
+for (village in villages) {
+  data_village <- data_sort_with_NP %>%
+    filter(Village == village & hypertension_group == "1st degree") 
+  #Проверка на нормальность для по полу
+  shapiro_male <- shapiro.test(data_village$Age[data_village$Gender == "Male"])
+  shapiro_female <- shapiro.test(data_village$Age[data_village$Gender == "Female"])  
+  #результаты теста Шапиро-Уилка датафрейме
+  shapiro_results <- shapiro_results %>%
+    add_row(Village = village, Gender = "Male", Shapiro_p_value = round(shapiro_male$p.value, 4)) %>%
+    add_row(Village = village, Gender = "Female", Shapiro_p_value = round(shapiro_female$p.value, 4))  
+  #если обе группы нормально распределены, используем t-тест, иначе тест Манна-Уитни
+  if (shapiro_male$p.value > 0.05 & shapiro_female$p.value > 0.05) {
+    test_result <- t.test(Age ~ Gender, data = data_village)
+    test_type <- "t-test"
+  } else {
+    test_result <- wilcox.test(Age ~ Gender, data = data_village)
+    test_type <- "Mann-Whitney test"
+  }  
+  #p-значения и отметки значимости
+  p_value <- round(test_result$p.value, 4)
+  significance <- ifelse(p_value < 0.05, "* (p < 0.05)", "ns (p >= 0.05)")  
+  #график
+  plot <- ggplot(data_village, aes(x = Gender, y = Age, fill = Gender)) +
+    geom_boxplot() +
+    labs(
+      title = paste("Village:", village),
+      subtitle = paste(test_type, "result:", significance),
+      x = "Gender",
+      y = "Age",
+      fill = "Gender"
+    ) +
+    theme_minimal() +
+    scale_fill_manual(values = c("Male" = "brown", "Female" = "lightblue")) +
+    theme(
+      plot.title = element_text(size = 14, face = "bold"),
+      plot.subtitle = element_text(size = 12)
+    ) +
+    annotate("text", x = 1.5, y = max(data_village$Age, na.rm = TRUE), 
+             label = paste("p-value:", p_value), size = 4, color = "black")  
+  plots[[village]] <- plot
+}
+#все графики
+for (p in plots) {
+  print(p)
+}
+# таблица с результатами теста Шапиро-Уилка
+kable(shapiro_results, caption = "Shapiro-Wilk Test Results by Village and Gender")
+```
