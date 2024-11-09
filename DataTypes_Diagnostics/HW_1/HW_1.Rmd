@@ -1,0 +1,251 @@
+---
+title: "Diagnostics_HW"
+author: "Andrey Kravets"
+date: "2024-11-09"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(summarytools)
+library(GGally)
+library(RColorBrewer)
+library(ggpubr)
+library(reshape2)
+library(pheatmap)
+library(readxl)
+library(pROC)
+```
+
+# Чтение данных
+
+Датасет черепно-мозговых травм вследствии падения с электросамоката.
+
+-   1 дюйм – 2.54 см
+-   1 кг – 2.2 фунта
+
+```{r}
+data = read_tsv("./trauma_HW.tsv")
+```
+
+```{r}
+summary(data)
+```
+
+Мы видим, что у нас проблемы с весом, ростом, уровнем гемоглобина. Для некоторых пациентов "запятая" была съедена и числа превратились из "192,7" в "1927". Вернемся в эксельку и пофиксим колонки (к сожалению, адекватного и эффектинвного решения через R я не нашёл, а тратить 2 часа на очень странный код не особо хочется).
+
+## Вес, Рост, HB
+
+Что мы сделали:\
+1. Вес - Weight_changed=SUBSTITUTE(Weight; ","; ".")\
+2. Рост - Height_changed=REPLACE(Height; LEN(Height); 1; "")\
+3. HB - HB_changed=SUBSTITUTE(Hb; ","; ".") (формулы гугл-шит)\
+
+В кратце: заменили запятые на точки, потому что их R воспринимает. В росте убрали '"' дюйма, чтобы спокойно все перевести. Тем самым пофиксили кучу проблем и можем спокойно поанализировать наши данные.
+
+Наши данные:
+
+```{r}
+data_changed = read_tsv("./trauma_changed.tsv")
+summary(data_changed)
+```
+
+## Переводы
+
+Переводим вес, рост в [НОРМАЛЬНЫЕ шкалы](https://www.youtube.com/watch?v=Y-3IV11_ZgA&ab_channel=AltraNade) :)
+
+```{r}
+data_changed = data_changed %>% mutate(Height_meter = Height_changed*2.54/100, Weight_kg=Weight_changed/2.2)
+summary(data_changed)
+```
+
+Еще заметим, что у нас в колонке HB_changed есть образцы с уровнем 0, что, скорее всего, является None. Заменим:
+
+```{r}
+data_changed = data_changed %>% mutate(HB_changed = case_when(HB_changed < 8. ~ NaN, HB_changed > 8. ~ HB_changed)) 
+```
+
+Посмотрим на пол ещё (тут все ок) и заменим на категории:
+
+```{r}
+unique_values_each <- data_changed %>%
+  select(where(is.character) | where(is.factor)) %>%
+  summarise_all(~ list(unique(.)))
+#unique_values_each
+print(unique_values_each %>% pull(Sex))
+```
+
+```{r}
+data_changed = data_changed %>% mutate(Sex = factor(Sex)) 
+```
+
+Возьмём финальные колонки и пойдем дальше:
+
+```{r}
+data_final <- data_changed %>%
+  select(id, Name, Sex, HB_changed, Height_meter, Weight_kg, Age, SBP, DBP, FOUR, GSC, Death)
+
+summary(data_final)
+```
+
+Nan у нас нет:
+
+```{r}
+# Смотрим NA в каждой из колонок
+data_final %>%
+  summarise(across(everything(), ~ sum(is.na(.)), .names = "na_{.col}"))
+```
+
+# Задания
+
+```{r}
+summary(data_final)
+```
+
+## Задание 1. Дайте описательную статистику для переменных, включённых в датасет. Дополнительно рассчитайте, у какого количества пациентов и в каком проценте случаев у пациентов был снижен уровень гемоглобина? Используйте следующие референтные значения (Мужчины: 13.5–16 г/дл, Женщины: 12–14 г/дл).
+
+```{r}
+data_final <- data_final %>% mutate(HB_level = factor(case_when((Sex=="Male") & (HB_changed < 13.5) ~ "Low", (Sex=='Female') & (HB_changed < 12.0) ~ "Low", TRUE~"Normal")))
+# Пациенты с неизвестным HB попадут в группу "Normal"
+
+data_final %>%
+  select(Sex, HB_level, HB_changed) %>%
+  group_by(Sex, HB_level) %>%
+  summarise(count = n(), .groups = 'drop') %>%
+  group_by(Sex) %>%
+  mutate(total = sum(count)) %>%
+  ungroup() %>%
+  mutate(percent = (count / total) * 100)
+```
+
+```{r}
+data_final %>%
+  select(Death, HB_level, HB_changed) %>%
+  group_by(Death, HB_level) %>%
+  summarise(count = n(), .groups = 'drop') %>%
+  group_by(Death) %>%
+  mutate(total = sum(count)) %>%
+  ungroup() %>%
+  mutate(percent = (count / total) * 100)
+```
+
+## Задание 2. Рассчитайте индекс массы тела у пациентов (кг / м2). Каков был средний (M (SD)) уровень ИМТ у пациентов, включённых в исследование? Какая доля пациентов имела ожирение (ИМТ \> 30)?
+
+```{r}
+data_final %>%
+  mutate(BMI = round(Weight_kg / (Height_meter ^ 2), 2)) %>%
+  mutate(BMI_high = if_else(BMI > 30, "High", "Low")) %>% 
+  summarise(
+    Mean_BMI = mean(BMI, na.rm = TRUE),                  # Средний ИМТ
+    SD_BMI = sd(BMI, na.rm = TRUE),                      # Стандартное отклонение ИМТ
+    Obesity_Count = sum(BMI > 30, na.rm = TRUE),         # Количество пациентов с ожирением
+    Obesity_Percent = (Obesity_Count / n()) * 100        # Процент пациентов с ожирением
+  ) %>%
+  mutate(Mean_SD_BMI = paste0(round(Mean_BMI, 2), " (", round(SD_BMI, 2), ")")) %>%
+  select(Mean_SD_BMI, Obesity_Count, Obesity_Percent)
+```
+
+## Задание 3. Как выглядит ROC-кривая для предсказания летального исхода в течение 24 часов по переменной, характеризующей уровень гемоглобина? Постройте график. Чем может быть обусловлена такая форма кривой?
+
+```{r}
+
+data_roc = data_final %>% mutate(HB_level_normal = if_else(HB_level == 'Normal', 1, 0))
+roc_curve_HB <- roc(Death ~ HB_level_normal, 
+                   data = data_roc)
+
+roc_curve_HB %>% ggroc() + theme_bw()
+```
+
+Т.к. мы разделили пациентов по уровню ГБ на две части: "Нормальный уровнень" и "Низкий уровень", то для по уровню HB у нас можем быть три трешхолда: T=0, 0\<T\<1 (неважно какое число, главное, что между 0 и 1, т.к. все значения в нашей таблице будут либо больше трешхолда, либо меньше (у нас только 0 и 1 в таблице)), T=1. Отсюда легко понять, что при T=0 и T=1 у нас будет Sensitivity = 100/0 и Specificity=0,100 соответственно. При 0\<T\<1 будет предсказательная сила равна проценту кейсов, у которых HB_level_normal = 0 & Death = 1.
+
+## Задание 4. Чему равна площадь под ROC-кривой, которую вы построили в вопросе 3? Чему равен 95%
+
+двусторонний ДИ для площади под ROC-кривой, которую вы построили в вопросе 3?
+
+```{r}
+
+data_roc = data_final %>% mutate(HB_level_normal = if_else(HB_level == 'Normal', 1, 0))
+roc_curve_HB <- roc(Death ~ HB_level_normal, 
+                   data = data_roc, ci=T)
+
+roc_curve_HB
+```
+
+"Area under the curve: 0.722 95% CI: 0.6939-0.7501 (DeLong)"
+
+## Задание 5. Проведите ROC-анализ и определите, какое пороговое значение является оптимальным для предсказания летального исхода в течение 24 часов по шкале комы Глазго. Какой чувствительностью и специфичностью обладает данный порог?
+
+```{r}
+data_roc = data_final
+roc_curve_GSC <- roc(Death ~ GSC, 
+                   data = data_roc, ci=T)
+
+roc_curve_GSC %>% ggroc() + theme_bw()
+```
+
+```{r}
+optimal_threshold <- coords(roc_curve_GSC, "best", ret = "threshold", best.method = "youden")
+
+optimal_metrics <- coords(roc_curve_GSC, x = optimal_threshold$threshold, 
+                          input = "threshold", ret = c("sensitivity", "specificity"))
+
+print(list(
+  Threshold = optimal_threshold,
+  Sensitivity = optimal_metrics["sensitivity"],
+  Specificity = optimal_metrics["specificity"]
+))
+```
+
+Расчитали лучший трешхолд по "индексу Юдена" = 7.5. Se=86%, Sp=81%
+
+## Задание 6. Какая из количественных переменных в датасете (включая рассчитанный вами ранее ИМТ) обладает наибольшей площадью под ROC-кривой? Как вы можете интерпретировать это знание? Какая количественная переменная имеет наименьшую площадь?
+
+Смотрим на количественные переменные:
+
+```{r, include=FALSE}
+data_final = data_final %>%
+  mutate(BMI = round(Weight_kg / (Height_meter ^ 2), 2))
+
+result = data_final %>% select(where(is.numeric), -id, Death) %>%
+    pivot_longer(cols = !Death) %>% 
+    
+    group_by(name) %>% 
+    
+    summarise(AUC = roc(Death, value, ci = T)$ci[2] %>% round(3),
+              AUC_LCL = roc(Death, value, ci = T)$ci[1] %>% round(3),
+              AUC_UCL = roc(Death, value, ci = T)$ci[3] %>% round(3))
+```
+
+```{r}
+result
+```
+Видим, что для переменных, таких как Возраст, ИМТ (рост+вес), AUC ~ 0.5. Что значит, что эти переменные не имеют предиктивной силы для предсказания исхода.
+
+Переменные со "средней силой": DBP, SBP - информация по давлению даёт примерно AUC~0.75, это нам говорит о том, что давление все-таки связано с исходом и что дополнительный ресерч может быть проведен здесь. Например, анализ статуса гипер и гипотензии.
+
+Наибольший AUC имеет переменная FOUR (сразу же за ней идёт GSC) - балл по шкале комы FOUR при поступлении. Давайте глянем на ROC-AUC этой переменной:
+```{r}
+data_roc = data_final
+roc_curve_FOUR <- roc(Death ~ FOUR, 
+                   data = data_roc, ci=T)
+
+roc_curve_FOUR %>% ggroc() + theme_bw()
+```
+Предпологаю, что FOUR и GSC скореллированы, это обсулавливает схожие результаты по ROC-AUC, давайте напоследок построим спирмена для них:
+
+```{r}
+spearman_corr <- cor(data_final$GSC, data_final$FOUR, method = "spearman")
+
+# Print result
+print(spearman_corr)
+
+data_final %>%  ggplot(aes(x = GSC, 
+                 y = FOUR))+
+  geom_point()+
+  geom_smooth(se = FALSE,
+              method = "lm")+
+  theme_bw()
+```
+Spearman ro = 0.94 !

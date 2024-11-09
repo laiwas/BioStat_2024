@@ -1,0 +1,1098 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={MidTerm\_Project\_Team5},
+  pdfauthor={Andrey Kravets},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{MidTerm\_Project\_Team5}
+\author{Andrey Kravets}
+\date{2024-11-03}
+
+\begin{document}
+\maketitle
+
+\section{Чтение
+данных}\label{ux447ux442ux435ux43dux438ux435-ux434ux430ux43dux43dux44bux445}
+
+Датасет Гипертензии в Доминикане
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{data }\OtherTok{=} \FunctionTok{read\_tsv}\NormalTok{(}\StringTok{"./DominicanHTN.tsv"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Rows: 381 Columns: 5
+## -- Column specification --------------------------------------------------------
+## Delimiter: "\t"
+## chr (2): Village, Gender
+## dbl (3): Age, SBP, DBP
+## 
+## i Use `spec()` to retrieve the full column specification for this data.
+## i Specify the column types or set `show_col_types = FALSE` to quiet this message.
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# read.xlsx("./DominicanHTN.xls", sheetIndex, header=TRUE)}
+\NormalTok{data\_sort\_all }\OtherTok{\textless{}{-}}\NormalTok{ data }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{hypertension\_group =} \FunctionTok{case\_when}\NormalTok{(}
+\NormalTok{    (SBP }\SpecialCharTok{\textgreater{}=} \DecValTok{140} \SpecialCharTok{\&}\NormalTok{ SBP }\SpecialCharTok{\textless{}} \DecValTok{160}\NormalTok{) }\SpecialCharTok{|}\NormalTok{ (DBP }\SpecialCharTok{\textgreater{}=} \DecValTok{90} \SpecialCharTok{\&}\NormalTok{ DBP }\SpecialCharTok{\textless{}} \DecValTok{100}\NormalTok{) }\SpecialCharTok{\textasciitilde{}} \StringTok{"1st degree"}\NormalTok{,}
+\NormalTok{    (SBP }\SpecialCharTok{\textgreater{}=} \DecValTok{160} \SpecialCharTok{\&}\NormalTok{ SBP }\SpecialCharTok{\textless{}} \DecValTok{180}\NormalTok{) }\SpecialCharTok{|}\NormalTok{ (DBP }\SpecialCharTok{\textgreater{}=} \DecValTok{100} \SpecialCharTok{\&}\NormalTok{ DBP }\SpecialCharTok{\textless{}} \DecValTok{110}\NormalTok{) }\SpecialCharTok{\textasciitilde{}} \StringTok{"2nd degree"}\NormalTok{,}
+\NormalTok{    SBP }\SpecialCharTok{\textgreater{}=} \DecValTok{180} \SpecialCharTok{|}\NormalTok{ DBP }\SpecialCharTok{\textgreater{}} \DecValTok{110} \SpecialCharTok{\textasciitilde{}} \StringTok{"3rd degree"}\NormalTok{,}
+\NormalTok{    SBP }\SpecialCharTok{\textgreater{}=} \DecValTok{140} \SpecialCharTok{\&}\NormalTok{ DBP }\SpecialCharTok{\textless{}} \DecValTok{90} \SpecialCharTok{\textasciitilde{}} \StringTok{"Isolated systolic hpt"}\NormalTok{,}
+\NormalTok{    SBP }\SpecialCharTok{\textless{}} \DecValTok{90} \SpecialCharTok{|}\NormalTok{ DBP }\SpecialCharTok{\textless{}} \DecValTok{60} \SpecialCharTok{\textasciitilde{}} \StringTok{"Hypotension"}\NormalTok{,}
+    \ConstantTok{TRUE} \SpecialCharTok{\textasciitilde{}} \StringTok{"Normal"}  \CommentTok{\# Условие по умолчанию для нормального давления}
+\NormalTok{  )) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{hypertension\_group =} \FunctionTok{factor}\NormalTok{(hypertension\_group, }
+                                     \AttributeTok{levels =} \FunctionTok{c}\NormalTok{(}\StringTok{"Normal"}\NormalTok{,}
+                                                \StringTok{"1st degree"}\NormalTok{, }
+                                                \StringTok{"2nd degree"}\NormalTok{, }
+                                                \StringTok{"3rd degree"}\NormalTok{,}
+                                                \StringTok{"Hypotension"}\NormalTok{,}
+                                                \StringTok{"Isolated systolic hpt"}\NormalTok{))) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{Gender =} \FunctionTok{factor}\NormalTok{(Gender, }
+                                     \AttributeTok{levels =} \FunctionTok{c}\NormalTok{(}\StringTok{"Female"}\NormalTok{,}
+                                                \StringTok{"Male"}\NormalTok{))) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{age\_group =} \FunctionTok{cut}\NormalTok{(Age, }
+                        \AttributeTok{breaks =} \FunctionTok{c}\NormalTok{(}\SpecialCharTok{{-}}\ConstantTok{Inf}\NormalTok{, }\DecValTok{30}\NormalTok{, }\DecValTok{45}\NormalTok{, }\DecValTok{65}\NormalTok{, }\ConstantTok{Inf}\NormalTok{), }
+                         \AttributeTok{labels =} \FunctionTok{c}\NormalTok{(}\StringTok{"Young"}\NormalTok{, }\StringTok{"Middle{-}aged"}\NormalTok{, }
+                                    \StringTok{"Older{-}Adults"}\NormalTok{, }\StringTok{"Seniors"}\NormalTok{)))}
+
+\FunctionTok{summary}\NormalTok{(data\_sort\_all)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##    Village             Gender         Age              SBP     
+##  Length:381         Female:258   Min.   : 15.00   Min.   : 80  
+##  Class :character   Male  :123   1st Qu.: 38.00   1st Qu.:118  
+##  Mode  :character                Median : 47.00   Median :130  
+##                                  Mean   : 47.97   Mean   :133  
+##                                  3rd Qu.: 59.00   3rd Qu.:150  
+##                                  Max.   :100.00   Max.   :236  
+##       DBP                     hypertension_group        age_group  
+##  Min.   : 20.00   Normal               :200      Young       : 44  
+##  1st Qu.: 76.00   1st degree           :124      Middle-aged :135  
+##  Median : 82.00   2nd degree           : 35      Older-Adults:151  
+##  Mean   : 84.23   3rd degree           : 18      Seniors     : 51  
+##  3rd Qu.: 92.00   Hypotension          :  4                        
+##  Max.   :152.00   Isolated systolic hpt:  0
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{data\_sort }\OtherTok{=}\NormalTok{ data\_sort\_all }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{filter}\NormalTok{(hypertension\_group }\SpecialCharTok{!=} \StringTok{"Hypotension"}\NormalTok{, }
+         \CommentTok{\#hypertension\_group != "Normal", }
+\NormalTok{         hypertension\_group }\SpecialCharTok{!=} \StringTok{"Isolated systolic hpt"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{hypertension\_group =} \FunctionTok{factor}\NormalTok{(hypertension\_group, }
+                                     \AttributeTok{levels =} \FunctionTok{c}\NormalTok{(}\StringTok{"Normal"}\NormalTok{,}
+                                                \StringTok{"1st degree"}\NormalTok{, }
+                                                \StringTok{"2nd degree"}\NormalTok{, }
+                                                \StringTok{"3rd degree"}\NormalTok{)))}
+\FunctionTok{summary}\NormalTok{(data\_sort)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##    Village             Gender         Age              SBP       
+##  Length:377         Female:256   Min.   : 17.00   Min.   : 90.0  
+##  Class :character   Male  :121   1st Qu.: 38.00   1st Qu.:118.0  
+##  Mode  :character                Median : 47.00   Median :130.0  
+##                                  Mean   : 48.13   Mean   :133.5  
+##                                  3rd Qu.: 60.00   3rd Qu.:150.0  
+##                                  Max.   :100.00   Max.   :236.0  
+##       DBP          hypertension_group        age_group  
+##  Min.   : 60.00   Normal    :200      Young       : 42  
+##  1st Qu.: 76.00   1st degree:124      Middle-aged :134  
+##  Median : 82.00   2nd degree: 35      Older-Adults:150  
+##  Mean   : 84.67   3rd degree: 18      Seniors     : 51  
+##  3rd Qu.: 92.00                                         
+##  Max.   :152.00
+\end{verbatim}
+
+\subsection{Сделаем и сохраним сводную таблицу по нашим отфильтрованным
+данным}\label{ux441ux434ux435ux43bux430ux435ux43c-ux438-ux441ux43eux445ux440ux430ux43dux438ux43c-ux441ux432ux43eux434ux43dux443ux44e-ux442ux430ux431ux43bux438ux446ux443-ux43fux43e-ux43dux430ux448ux438ux43c-ux43eux442ux444ux438ux43bux44cux442ux440ux43eux432ux430ux43dux43dux44bux43c-ux434ux430ux43dux43dux44bux43c}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{summary\_table }\OtherTok{\textless{}{-}}\NormalTok{ data\_sort }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{select}\NormalTok{(age\_group, Gender, hypertension\_group, Village) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{tbl\_summary}\NormalTok{(}
+    \AttributeTok{by =}\NormalTok{ hypertension\_group,  }\CommentTok{\# Group by Hypertension}
+    \AttributeTok{statistic =} \FunctionTok{list}\NormalTok{(}\FunctionTok{all\_continuous}\NormalTok{() }\SpecialCharTok{\textasciitilde{}} \StringTok{"\{mean\} (\{sd\})"}\NormalTok{, }\FunctionTok{all\_categorical}\NormalTok{() }\SpecialCharTok{\textasciitilde{}} \StringTok{"\{n\} / \{N\} (\{p\}\%)"}\NormalTok{),  }\CommentTok{\# Specify summary stats}
+    \AttributeTok{label =} \FunctionTok{list}\NormalTok{(Gender }\SpecialCharTok{\textasciitilde{}} \StringTok{"Gender"}\NormalTok{,}
+\NormalTok{                 age\_group }\SpecialCharTok{\textasciitilde{}} \StringTok{"Age Group"}\NormalTok{)) }\SpecialCharTok{\%\textgreater{}\%}  \CommentTok{\# Customize labels}
+  \FunctionTok{add\_p}\NormalTok{() }\SpecialCharTok{\%\textgreater{}\%}  \CommentTok{\# Add p{-}values for group comparisons}
+  \FunctionTok{modify\_header}\NormalTok{(}\AttributeTok{label =} \StringTok{"**Variable**"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}  \CommentTok{\# Customize header}
+  \FunctionTok{modify\_spanning\_header}\NormalTok{(}\FunctionTok{all\_stat\_cols}\NormalTok{() }\SpecialCharTok{\textasciitilde{}} \StringTok{"**Hypertension Group**"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## The following errors were returned during `modify_spanning_header()`:
+## x For variable `Village` (`hypertension_group`) and "estimate", "p.value",
+##   "conf.low", and "conf.high" statistics: FEXACT error 6 (f5xact).  LDKEY=620
+##   is too small for this problem: kval=16069128. Try increasing the size of the
+##   workspace.
+## x For variable `age_group` (`hypertension_group`) and "estimate", "p.value",
+##   "conf.low", and "conf.high" statistics: FEXACT error 6 (f5xact).  LDKEY=620
+##   is too small for this problem: kval=44368515. Try increasing the size of the
+##   workspace.
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{summary\_table }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{as\_flex\_table}\NormalTok{() }\SpecialCharTok{\%\textgreater{}\%}
+\NormalTok{  flextable}\SpecialCharTok{::}\FunctionTok{save\_as\_html}\NormalTok{(}\AttributeTok{path =} \StringTok{"summary\_table.html"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Посмотрим на датасет чуть
+подробнее}\label{ux43fux43eux441ux43cux43eux442ux440ux438ux43c-ux43dux430-ux434ux430ux442ux430ux441ux435ux442-ux447ux443ux442ux44c-ux43fux43eux434ux440ux43eux431ux43dux435ux435}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{glimpse}\NormalTok{(data\_sort)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Rows: 377
+## Columns: 7
+## $ Village            <chr> "Bare' Nuevo", "Batey Verde", "Batey Verde", "Batey~
+## $ Gender             <fct> Female, Male, Female, Female, Female, Female, Femal~
+## $ Age                <dbl> 70, 62, 50, 56, 42, 34, 85, 64, 75, 37, 63, 48, 39,~
+## $ SBP                <dbl> 130, 180, 156, 160, 150, 170, 190, 160, 150, 130, 1~
+## $ DBP                <dbl> 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 1~
+## $ hypertension_group <fct> 2nd degree, 2nd degree, 1st degree, 2nd degree, 1st~
+## $ age_group          <fct> Seniors, Older-Adults, Older-Adults, Older-Adults, ~
+\end{verbatim}
+
+Ищем в числовых колонках (с форматов doublefloat) N/A:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{data\_sort }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{select}\NormalTok{(}\FunctionTok{where}\NormalTok{(is.numeric)) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{summarise\_all}\NormalTok{(}\ControlFlowTok{function}\NormalTok{(x) }\FunctionTok{sum}\NormalTok{(}\FunctionTok{is.na}\NormalTok{(.)))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 1 x 3
+##     Age   SBP   DBP
+##   <int> <int> <int>
+## 1     0     0     0
+\end{verbatim}
+
+Видим, что в исходных числовых и бинарных колонках, нет N/A
+
+Ищем N/A в категориальных(строковых) колонках:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{unique\_values\_each }\OtherTok{\textless{}{-}}\NormalTok{ data\_sort }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{select}\NormalTok{(}\FunctionTok{where}\NormalTok{(is.character) }\SpecialCharTok{|} \FunctionTok{where}\NormalTok{(is.factor)) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{summarise\_all}\NormalTok{(}\SpecialCharTok{\textasciitilde{}} \FunctionTok{list}\NormalTok{(}\FunctionTok{unique}\NormalTok{(.)))}
+\CommentTok{\#unique\_values\_each}
+\FunctionTok{print}\NormalTok{(unique\_values\_each }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{pull}\NormalTok{(Village))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [[1]]
+## [1] "Bare' Nuevo"   "Batey Verde"   "Carmona"       "Cojobal"      
+## [5] "Juan Sanchez"  "La Altagracia" "Los Gueneos"   "San Antonio"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(unique\_values\_each }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{pull}\NormalTok{(Gender))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [[1]]
+## [1] Female Male  
+## Levels: Female Male
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(unique\_values\_each }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{pull}\NormalTok{(hypertension\_group))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [[1]]
+## [1] 2nd degree 1st degree 3rd degree Normal    
+## Levels: Normal 1st degree 2nd degree 3rd degree
+\end{verbatim}
+
+None нигде нет.
+
+\section{Визуализация пункт 2 и
+3}\label{ux432ux438ux437ux443ux430ux43bux438ux437ux430ux446ux438ux44f-ux43fux443ux43dux43aux442-2-ux438-3}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{theme\_custom }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{()\{}
+  \FunctionTok{theme\_bw}\NormalTok{() }\SpecialCharTok{\%+replace\%}
+  \FunctionTok{theme}\NormalTok{(}
+    \AttributeTok{axis.text =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{size =} \DecValTok{18}\NormalTok{),}
+    \AttributeTok{axis.title.y =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{size =} \DecValTok{20}\NormalTok{, }\AttributeTok{angle=}\DecValTok{90}\NormalTok{),}
+    \AttributeTok{axis.title.x =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{size =} \DecValTok{22}\NormalTok{),}
+    \AttributeTok{legend.text =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{size =} \DecValTok{18}\NormalTok{),}
+    \AttributeTok{legend.title =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{size =} \DecValTok{20}\NormalTok{),}
+\NormalTok{  )}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{Возраст}\label{ux432ux43eux437ux440ux430ux441ux442}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{data\_sort }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{filter}\NormalTok{(hypertension\_group}\SpecialCharTok{==}\StringTok{"Normal"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{ggplot}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{geom\_histogram}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x=}\NormalTok{Age), }\AttributeTok{alpha=}\FloatTok{0.7}\NormalTok{, }\AttributeTok{bins=}\DecValTok{30}\NormalTok{,}
+                 \AttributeTok{color=}\StringTok{"black"}\NormalTok{, }\AttributeTok{fill=}\StringTok{\textquotesingle{}darkblue\textquotesingle{}}\NormalTok{) }\SpecialCharTok{+}
+  \CommentTok{\# scale\_fill\_manual(values = c("Male" = "brown", }
+  \CommentTok{\#                               "Female" = "lightblue")) +}
+  \FunctionTok{scale\_y\_continuous}\NormalTok{(}\AttributeTok{name =} \StringTok{"Count"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{fill=}\StringTok{\textquotesingle{}Gender\textquotesingle{}}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_custom}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{MidTerm_Project_files/figure-latex/unnamed-chunk-8-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{data\_sort }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{sample =}\NormalTok{ Age)) }\SpecialCharTok{+}
+  \FunctionTok{stat\_qq}\NormalTok{(}\AttributeTok{color=}\StringTok{\textquotesingle{}darkblue\textquotesingle{}}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{stat\_qq\_line}\NormalTok{(}\AttributeTok{color=}\StringTok{\textquotesingle{}red\textquotesingle{}}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"QQ Plot"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"Theoretical Quantiles"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Sample Quantiles"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_custom}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{MidTerm_Project_files/figure-latex/unnamed-chunk-9-1.pdf}
+
+\section{Визуализация пункт
+3}\label{ux432ux438ux437ux443ux430ux43bux438ux437ux430ux446ux438ux44f-ux43fux443ux43dux43aux442-3}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{display.brewer.all}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{MidTerm_Project_files/figure-latex/unnamed-chunk-10-1.pdf}
+
+\subsection{Возраст и
+Пол}\label{ux432ux43eux437ux440ux430ux441ux442-ux438-ux43fux43eux43b}
+
+\includegraphics{MidTerm_Project_files/figure-latex/unnamed-chunk-11-1.pdf}
+
+\includegraphics{MidTerm_Project_files/figure-latex/unnamed-chunk-12-1.pdf}
+
+Есть ассоциация возраста и пола
+
+\begin{verbatim}
+## # A tibble: 1 x 1
+##     MW_p_value
+##          <dbl>
+## 1 0.0000000101
+\end{verbatim}
+
+\subsection{Барплоты}\label{ux431ux430ux440ux43fux43bux43eux442ux44b}
+
+\subsubsection{Деревени}\label{ux434ux435ux440ux435ux432ux435ux43dux438}
+
+Связь с гипертензией
+
+\includegraphics{MidTerm_Project_files/figure-latex/unnamed-chunk-14-1.pdf}
+
+Есть деревни без 3rd degree гипертензии.
+
+\includegraphics{MidTerm_Project_files/figure-latex/unnamed-chunk-15-1.pdf}
+
+Связь с полом
+
+\includegraphics{MidTerm_Project_files/figure-latex/unnamed-chunk-16-1.pdf}
+
+Связь с группой возрастом
+
+\includegraphics{MidTerm_Project_files/figure-latex/unnamed-chunk-17-1.pdf}
+
+\includegraphics{MidTerm_Project_files/figure-latex/unnamed-chunk-18-1.pdf}
+
+\subsubsection{Gender vs.~Hypertenstion}\label{gender-vs.-hypertenstion}
+
+\includegraphics{MidTerm_Project_files/figure-latex/unnamed-chunk-19-1.pdf}
+
+\includegraphics{MidTerm_Project_files/figure-latex/unnamed-chunk-20-1.pdf}
+
+\subsubsection{Гистограммы}\label{ux433ux438ux441ux442ux43eux433ux440ux430ux43cux43cux44b}
+
+\includegraphics{MidTerm_Project_files/figure-latex/unnamed-chunk-21-1.pdf}
+
+\includegraphics{MidTerm_Project_files/figure-latex/unnamed-chunk-22-1.pdf}
+
+\includegraphics{MidTerm_Project_files/figure-latex/unnamed-chunk-23-1.pdf}
+
+\begin{verbatim}
+## Warning in geom_boxplot(aes(x = hypertension_group, y = Age, fill = Gender), :
+## Ignoring unknown parameters: `stroke`
+\end{verbatim}
+
+\includegraphics{MidTerm_Project_files/figure-latex/unnamed-chunk-24-1.pdf}
+
+\includegraphics{MidTerm_Project_files/figure-latex/unnamed-chunk-25-1.pdf}
+
+\subsection{Графики от
+Вани}\label{ux433ux440ux430ux444ux438ux43aux438-ux43eux442-ux432ux430ux43dux438}
+
+\subsubsection{Для Пункта 3 - Бар-плот Age vs.~Hypertension
+Group}\label{ux434ux43bux44f-ux43fux443ux43dux43aux442ux430-3---ux431ux430ux440-ux43fux43bux43eux442-age-vs.-hypertension-group}
+
+\begin{verbatim}
+## `summarise()` has grouped output by 'age_group'. You can override using the
+## `.groups` argument.
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: The `size` argument of `element_rect()` is deprecated as of ggplot2 3.4.0.
+## i Please use the `linewidth` argument instead.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+## generated.
+\end{verbatim}
+
+\includegraphics{MidTerm_Project_files/figure-latex/unnamed-chunk-26-1.pdf}
+
+\begin{verbatim}
+## `summarise()` has grouped output by 'age_group'. You can override using the
+## `.groups` argument.
+\end{verbatim}
+
+\includegraphics{MidTerm_Project_files/figure-latex/unnamed-chunk-27-1.pdf}
+\#\#\# Для Пункта 2 - Статистика по деревням
+\includegraphics{MidTerm_Project_files/figure-latex/unnamed-chunk-28-1.pdf}
+
+\begin{verbatim}
+## `summarise()` has grouped output by 'Village'. You can override using the
+## `.groups` argument.
+\end{verbatim}
+
+\includegraphics{MidTerm_Project_files/figure-latex/unnamed-chunk-29-1.pdf}
+
+\begin{verbatim}
+## `summarise()` has grouped output by 'Village'. You can override using the
+## `.groups` argument.
+\end{verbatim}
+
+\includegraphics{MidTerm_Project_files/figure-latex/unnamed-chunk-30-1.pdf}
+
+\subsubsection{Гистограммы по
+возрасту}\label{ux433ux438ux441ux442ux43eux433ux440ux430ux43cux43cux44b-ux43fux43e-ux432ux43eux437ux440ux430ux441ux442ux443}
+
+\includegraphics{MidTerm_Project_files/figure-latex/unnamed-chunk-31-1.pdf}
+
+\section{Стат.тесты}\label{ux441ux442ux430ux442.ux442ux435ux441ux442ux44b}
+
+\subsection{Age vs.~Hypertension}\label{age-vs.-hypertension}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{data\_part }\OtherTok{=}\NormalTok{ data\_sort }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{filter}\NormalTok{(age\_group}\SpecialCharTok{!=}\StringTok{"Young"}\NormalTok{,}
+\NormalTok{                                 hypertension\_group}\SpecialCharTok{!=}\StringTok{\textquotesingle{}Normal\textquotesingle{}}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{droplevels}\NormalTok{()}
+  \CommentTok{\# mutate(age\_group = factor(age\_group, }
+  \CommentTok{\#                                                                                 levels=c("Middle{-}aged", "Older{-}Adults", "Seniors")))}
+
+\NormalTok{gender\_hypertension\_table }\OtherTok{\textless{}{-}} \FunctionTok{table}\NormalTok{(data\_part}\SpecialCharTok{$}\NormalTok{age\_group, }
+\NormalTok{                                   data\_part}\SpecialCharTok{$}\NormalTok{hypertension\_group)}
+\FunctionTok{print}\NormalTok{(gender\_hypertension\_table)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##               
+##                1st degree 2nd degree 3rd degree
+##   Middle-aged          39         12          7
+##   Older-Adults         62         18          6
+##   Seniors              20          5          5
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{chisq.test}\NormalTok{(gender\_hypertension\_table)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning in chisq.test(gender_hypertension_table): Chi-squared approximation may
+## be incorrect
+\end{verbatim}
+
+\begin{verbatim}
+## 
+##  Pearson's Chi-squared test
+## 
+## data:  gender_hypertension_table
+## X-squared = 2.6443, df = 4, p-value = 0.619
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{gender\_hypertension\_table }
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##               
+##                1st degree 2nd degree 3rd degree
+##   Middle-aged          39         12          7
+##   Older-Adults         62         18          6
+##   Seniors              20          5          5
+\end{verbatim}
+
+\subsection{Sex vs.~village}\label{sex-vs.-village}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# data\_part = data\_sort \%\textgreater{}\% filter(age\_group!="Young",}
+\CommentTok{\#                                  hypertension\_group!=\textquotesingle{}Normal\textquotesingle{}) \%\textgreater{}\% droplevels()}
+  \CommentTok{\# mutate(age\_group = factor(age\_group, }
+  \CommentTok{\#                                                                                 levels=c("Middle{-}aged", "Older{-}Adults", "Seniors")))}
+
+\NormalTok{gender\_hypertension\_table }\OtherTok{\textless{}{-}} \FunctionTok{table}\NormalTok{(data\_sort}\SpecialCharTok{$}\NormalTok{Gender, }
+\NormalTok{                                   data\_sort}\SpecialCharTok{$}\NormalTok{Village)}
+\FunctionTok{print}\NormalTok{(gender\_hypertension\_table)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##         
+##          Bare' Nuevo Batey Verde Carmona Cojobal Juan Sanchez La Altagracia
+##   Female          18          29      39      47           40            22
+##   Male            13          11      25      12           12            17
+##         
+##          Los Gueneos San Antonio
+##   Female          41          20
+##   Male            16          15
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{chisq.test}\NormalTok{(gender\_hypertension\_table)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Pearson's Chi-squared test
+## 
+## data:  gender_hypertension_table
+## X-squared = 13.52, df = 7, p-value = 0.0604
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{gender\_hypertension\_table }
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##         
+##          Bare' Nuevo Batey Verde Carmona Cojobal Juan Sanchez La Altagracia
+##   Female          18          29      39      47           40            22
+##   Male            13          11      25      12           12            17
+##         
+##          Los Gueneos San Antonio
+##   Female          41          20
+##   Male            16          15
+\end{verbatim}
+
+\subsection{Anova Age vs.~Village}\label{anova-age-vs.-village}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# data\_part = data\_sort \%\textgreater{}\% filter(age\_group!="Young",}
+\CommentTok{\#                                  hypertension\_group!=\textquotesingle{}Normal\textquotesingle{}) \%\textgreater{}\% droplevels()}
+  \CommentTok{\# mutate(age\_group = factor(age\_group, }
+  \CommentTok{\#                                                                                 levels=c("Middle{-}aged", "Older{-}Adults", "Seniors")))}
+
+\NormalTok{res }\OtherTok{=}\NormalTok{ data\_sort }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{select}\NormalTok{(Age, Village) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{aov}\NormalTok{(Age }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Village, }\AttributeTok{data=}\NormalTok{.)}
+
+\FunctionTok{summary}\NormalTok{(res)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##              Df Sum Sq Mean Sq F value Pr(>F)
+## Village       7   1140   162.8   0.717  0.657
+## Residuals   369  83753   227.0
+\end{verbatim}
+
+\subsection{Two-way ANOVA Age
+vs.~Gender*Hypertension}\label{two-way-anova-age-vs.-genderhypertension}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# data\_part = data\_sort \%\textgreater{}\% filter(age\_group!="Young",}
+\CommentTok{\#                                  hypertension\_group!=\textquotesingle{}Normal\textquotesingle{}) \%\textgreater{}\% droplevels()}
+  \CommentTok{\# mutate(age\_group = factor(age\_group, }
+  \CommentTok{\#                                                                                 levels=c("Middle{-}aged", "Older{-}Adults", "Seniors")))}
+
+\NormalTok{res }\OtherTok{=}\NormalTok{ data\_sort }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{select}\NormalTok{(Age, hypertension\_group, Gender) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{aov}\NormalTok{(Age }\SpecialCharTok{\textasciitilde{}}\NormalTok{ hypertension\_group}\SpecialCharTok{*}\NormalTok{Gender, }\AttributeTok{data=}\NormalTok{.)}
+
+\FunctionTok{summary}\NormalTok{(res)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                            Df Sum Sq Mean Sq F value   Pr(>F)    
+## hypertension_group          3   6686    2229   11.63 2.66e-07 ***
+## Gender                      1   6730    6730   35.14 7.06e-09 ***
+## hypertension_group:Gender   3    798     266    1.39    0.246    
+## Residuals                 369  70679     192                     
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
+\subsection{Cтат.тесты от
+ребят}\label{cux442ux430ux442.ux442ux435ux441ux442ux44b-ux43eux442-ux440ux435ux431ux44fux442}
+
+\subsubsection{Ваня}\label{ux432ux430ux43dux44f}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{table\_gender }\OtherTok{\textless{}{-}} \FunctionTok{table}\NormalTok{(data\_sort}\SpecialCharTok{$}\NormalTok{Gender, data\_sort}\SpecialCharTok{$}\NormalTok{hypertension\_group)}
+
+\NormalTok{chi\_square\_gender }\OtherTok{\textless{}{-}} \FunctionTok{chisq.test}\NormalTok{(table\_gender)}
+\FunctionTok{print}\NormalTok{(chi\_square\_gender)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Pearson's Chi-squared test
+## 
+## data:  table_gender
+## X-squared = 1.188, df = 3, p-value = 0.7559
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{table\_village }\OtherTok{\textless{}{-}} \FunctionTok{table}\NormalTok{(data\_sort}\SpecialCharTok{$}\NormalTok{Village, data\_sort}\SpecialCharTok{$}\NormalTok{hypertension\_group)}
+\NormalTok{chi\_square\_village }\OtherTok{\textless{}{-}} \FunctionTok{chisq.test}\NormalTok{(table\_village)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning in chisq.test(table_village): Chi-squared approximation may be
+## incorrect
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(chi\_square\_village)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Pearson's Chi-squared test
+## 
+## data:  table_village
+## X-squared = 17.652, df = 21, p-value = 0.6709
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model\_logistic }\OtherTok{\textless{}{-}} \FunctionTok{glm}\NormalTok{(hypertension\_group }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Gender }\SpecialCharTok{+}\NormalTok{ Village, }\AttributeTok{data =}\NormalTok{ data\_sort, }\AttributeTok{family =} \StringTok{"binomial"}\NormalTok{)}
+\FunctionTok{summary}\NormalTok{(model\_logistic)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## glm(formula = hypertension_group ~ Gender + Village, family = "binomial", 
+##     data = data_sort)
+## 
+## Coefficients:
+##                      Estimate Std. Error z value Pr(>|z|)
+## (Intercept)          -0.18618    0.37321  -0.499    0.618
+## GenderMale           -0.01902    0.22683  -0.084    0.933
+## VillageBatey Verde    0.09133    0.48122   0.190    0.849
+## VillageCarmona        0.25614    0.43916   0.583    0.560
+## VillageCojobal        0.08827    0.44791   0.197    0.844
+## VillageJuan Sanchez   0.03642    0.45767   0.080    0.937
+## VillageLa Altagracia -0.16844    0.48605  -0.347    0.729
+## VillageLos Gueneos   -0.27279    0.45308  -0.602    0.547
+## VillageSan Antonio    0.59981    0.49931   1.201    0.230
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 521.23  on 376  degrees of freedom
+## Residual deviance: 516.05  on 368  degrees of freedom
+## AIC: 534.05
+## 
+## Number of Fisher Scoring iterations: 4
+\end{verbatim}
+
+\subsubsection{Лена}\label{ux43bux435ux43dux430}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Elena}
+\NormalTok{data\_hypertension }\OtherTok{\textless{}{-}}\NormalTok{ data\_sort }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{filter}\NormalTok{(hypertension\_group }\SpecialCharTok{!=} \StringTok{"Normal pressure"}\NormalTok{)}
+
+\CommentTok{\# Нулевая гипотеза: средний возраст между группами с разной степенью гипертензии одинаков}
+\CommentTok{\# Альтернативная гипотеза: средний возраст между группами с разной степенью гипертензии различается}
+\CommentTok{\# Выполнение однофакторного дисперсионного анализа для возраста по группам гипертензии}
+\NormalTok{anova\_age }\OtherTok{\textless{}{-}} \FunctionTok{aov}\NormalTok{(Age }\SpecialCharTok{\textasciitilde{}}\NormalTok{ hypertension\_group, }\AttributeTok{data =}\NormalTok{ data\_hypertension)}
+\FunctionTok{summary}\NormalTok{(anova\_age)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                     Df Sum Sq Mean Sq F value   Pr(>F)    
+## hypertension_group   3   6686  2228.7   10.63 1.01e-06 ***
+## Residuals          373  78207   209.7                     
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Построение графика}
+\FunctionTok{ggplot}\NormalTok{(data\_hypertension, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ hypertension\_group, }\AttributeTok{y =}\NormalTok{ Age)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_boxplot}\NormalTok{(}\AttributeTok{fill =} \StringTok{"lightblue"}\NormalTok{, }\AttributeTok{color =} \StringTok{"darkblue"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"ANOVA: Distribution of Age Groups by Hypertension Level"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"Hypertension Level"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Age"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{MidTerm_Project_files/figure-latex/unnamed-chunk-41-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Проведение теста Тьюки после ANOVA}
+\NormalTok{tukey\_age }\OtherTok{\textless{}{-}} \FunctionTok{TukeyHSD}\NormalTok{(anova\_age)}
+\FunctionTok{print}\NormalTok{(tukey\_age)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   Tukey multiple comparisons of means
+##     95% family-wise confidence level
+## 
+## Fit: aov(formula = Age ~ hypertension_group, data = data_hypertension)
+## 
+## $hypertension_group
+##                            diff          lwr       upr     p adj
+## 1st degree-Normal      7.649032   3.37787994 11.920185 0.0000311
+## 2nd degree-Normal     10.255714   3.40898264 17.102446 0.0007516
+## 3rd degree-Normal      9.103333  -0.09216757 18.298834 0.0534824
+## 2nd degree-1st degree  2.606682  -4.54572288  9.759087 0.7830272
+## 3rd degree-1st degree  1.454301  -7.97100521 10.879607 0.9785916
+## 3rd degree-2nd degree -1.152381 -11.99080292  9.686041 0.9927734
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Преобразование результатов теста Тьюки в data frame}
+\NormalTok{tukey\_data }\OtherTok{\textless{}{-}} \FunctionTok{as.data.frame}\NormalTok{(tukey\_age}\SpecialCharTok{$}\NormalTok{hypertension\_group)}
+\NormalTok{tukey\_data}\SpecialCharTok{$}\NormalTok{Comparison }\OtherTok{\textless{}{-}} \FunctionTok{rownames}\NormalTok{(tukey\_data)}
+
+\FunctionTok{ggplot}\NormalTok{(tukey\_data, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Comparison, }\AttributeTok{y =}\NormalTok{ diff)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{size =} \DecValTok{3}\NormalTok{, }\AttributeTok{color =} \StringTok{"darkblue"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_errorbar}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{ymin =}\NormalTok{ lwr, }\AttributeTok{ymax =}\NormalTok{ upr), }\AttributeTok{width =} \FloatTok{0.2}\NormalTok{, }\AttributeTok{color =} \StringTok{"darkred"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_hline}\NormalTok{(}\AttributeTok{yintercept =} \DecValTok{0}\NormalTok{, }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{, }\AttributeTok{color =} \StringTok{"grey"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Tukey HSD Test: Pairwise Comparisons"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"Comparisons"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Difference in Means (with 95\% CI)"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}\AttributeTok{axis.text.x =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{angle =} \DecValTok{45}\NormalTok{, }\AttributeTok{hjust =} \DecValTok{1}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{MidTerm_Project_files/figure-latex/unnamed-chunk-41-2.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Анализ связи между полом и группой гипертензии}
+\CommentTok{\# Таблица сопряженности для пола и группы гипертензии}
+\NormalTok{gender\_hypertension\_table }\OtherTok{\textless{}{-}} \FunctionTok{table}\NormalTok{(data\_hypertension}\SpecialCharTok{$}\NormalTok{Gender, data\_hypertension}\SpecialCharTok{$}\NormalTok{hypertension\_group)}
+\FunctionTok{print}\NormalTok{(gender\_hypertension\_table)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##         
+##          Normal 1st degree 2nd degree 3rd degree
+##   Female    136         81         26         13
+##   Male       64         43          9          5
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Теста Фишера для таблицы пола и групп гипертензии}
+\NormalTok{chisq\_test\_gender }\OtherTok{\textless{}{-}} \FunctionTok{suppressWarnings}\NormalTok{(}\FunctionTok{chisq.test}\NormalTok{(gender\_hypertension\_table))}
+\FunctionTok{print}\NormalTok{(chisq\_test\_gender)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Pearson's Chi-squared test
+## 
+## data:  gender_hypertension_table
+## X-squared = 1.188, df = 3, p-value = 0.7559
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Создание таблицы сопряженности для возрастных групп и группы гипертензии}
+\NormalTok{age\_group\_table }\OtherTok{\textless{}{-}} \FunctionTok{table}\NormalTok{(data\_hypertension}\SpecialCharTok{$}\NormalTok{age\_group, data\_hypertension}\SpecialCharTok{$}\NormalTok{hypertension\_group)}
+\FunctionTok{print}\NormalTok{(age\_group\_table)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##               
+##                Normal 1st degree 2nd degree 3rd degree
+##   Young            39          3          0          0
+##   Middle-aged      76         39         12          7
+##   Older-Adults     64         62         18          6
+##   Seniors          21         20          5          5
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Проведение хи{-}квадрат теста для оценки зависимости}
+\NormalTok{chisq\_test\_age\_group }\OtherTok{\textless{}{-}} \FunctionTok{suppressWarnings}\NormalTok{(}\FunctionTok{chisq.test}\NormalTok{(age\_group\_table))}
+\FunctionTok{print}\NormalTok{(chisq\_test\_age\_group)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Pearson's Chi-squared test
+## 
+## data:  age_group_table
+## X-squared = 40.283, df = 9, p-value = 6.752e-06
+\end{verbatim}
+
+\subsubsection{Вика}\label{ux432ux438ux43aux430}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Анализ связи между полом и группой гипертензии}
+\CommentTok{\# Таблица сопряженности для пола и группы гипертензии}
+\NormalTok{gender\_hypertension\_table }\OtherTok{\textless{}{-}} \FunctionTok{table}\NormalTok{(data\_hypertension}\SpecialCharTok{$}\NormalTok{Gender, data\_hypertension}\SpecialCharTok{$}\NormalTok{hypertension\_group)}
+\FunctionTok{print}\NormalTok{(gender\_hypertension\_table)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##         
+##          Normal 1st degree 2nd degree 3rd degree
+##   Female    136         81         26         13
+##   Male       64         43          9          5
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Теста Фишера для таблицы пола и групп гипертензии}
+\NormalTok{chisq\_test\_gender }\OtherTok{\textless{}{-}} \FunctionTok{suppressWarnings}\NormalTok{(}\FunctionTok{chisq.test}\NormalTok{(gender\_hypertension\_table))}
+\FunctionTok{print}\NormalTok{(chisq\_test\_gender)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Pearson's Chi-squared test
+## 
+## data:  gender_hypertension_table
+## X-squared = 1.188, df = 3, p-value = 0.7559
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Создание таблицы сопряженности для возрастных групп и группы гипертензии}
+\NormalTok{age\_group\_table }\OtherTok{\textless{}{-}} \FunctionTok{table}\NormalTok{(data\_hypertension}\SpecialCharTok{$}\NormalTok{age\_group, data\_hypertension}\SpecialCharTok{$}\NormalTok{hypertension\_group)}
+\FunctionTok{print}\NormalTok{(age\_group\_table)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##               
+##                Normal 1st degree 2nd degree 3rd degree
+##   Young            39          3          0          0
+##   Middle-aged      76         39         12          7
+##   Older-Adults     64         62         18          6
+##   Seniors          21         20          5          5
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Проведение хи{-}квадрат теста для оценки зависимости}
+\NormalTok{chisq\_test\_age\_group }\OtherTok{\textless{}{-}} \FunctionTok{suppressWarnings}\NormalTok{(}\FunctionTok{chisq.test}\NormalTok{(age\_group\_table))}
+\FunctionTok{print}\NormalTok{(chisq\_test\_age\_group)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Pearson's Chi-squared test
+## 
+## data:  age_group_table
+## X-squared = 40.283, df = 9, p-value = 6.752e-06
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(knitr)  }\CommentTok{\# Для отображения таблицы}
+
+\NormalTok{data\_sort\_with\_NP }\OtherTok{=}\NormalTok{ data\_sort}
+\NormalTok{villages }\OtherTok{\textless{}{-}} \FunctionTok{unique}\NormalTok{(data\_sort\_with\_NP}\SpecialCharTok{$}\NormalTok{Village)}
+\NormalTok{plots }\OtherTok{\textless{}{-}} \FunctionTok{list}\NormalTok{()}
+\CommentTok{\#тест Шапиро{-}Уилка}
+\NormalTok{shapiro\_results }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{Village =} \FunctionTok{character}\NormalTok{(),}
+  \AttributeTok{Gender =} \FunctionTok{character}\NormalTok{(),}
+  \AttributeTok{Shapiro\_p\_value =} \FunctionTok{numeric}\NormalTok{(),}
+  \AttributeTok{stringsAsFactors =} \ConstantTok{FALSE}
+\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{ (village }\ControlFlowTok{in}\NormalTok{ villages) \{}
+\NormalTok{  data\_village }\OtherTok{\textless{}{-}}\NormalTok{ data\_sort\_with\_NP }\SpecialCharTok{\%\textgreater{}\%}
+    \FunctionTok{filter}\NormalTok{(Village }\SpecialCharTok{==}\NormalTok{ village }\SpecialCharTok{\&}\NormalTok{ hypertension\_group }\SpecialCharTok{==} \StringTok{"1st degree"}\NormalTok{) }
+  \CommentTok{\#Проверка на нормальность для по полу}
+\NormalTok{  shapiro\_male }\OtherTok{\textless{}{-}} \FunctionTok{shapiro.test}\NormalTok{(data\_village}\SpecialCharTok{$}\NormalTok{Age[data\_village}\SpecialCharTok{$}\NormalTok{Gender }\SpecialCharTok{==} \StringTok{"Male"}\NormalTok{])}
+\NormalTok{  shapiro\_female }\OtherTok{\textless{}{-}} \FunctionTok{shapiro.test}\NormalTok{(data\_village}\SpecialCharTok{$}\NormalTok{Age[data\_village}\SpecialCharTok{$}\NormalTok{Gender }\SpecialCharTok{==} \StringTok{"Female"}\NormalTok{])  }
+  \CommentTok{\#результаты теста Шапиро{-}Уилка датафрейме}
+\NormalTok{  shapiro\_results }\OtherTok{\textless{}{-}}\NormalTok{ shapiro\_results }\SpecialCharTok{\%\textgreater{}\%}
+    \FunctionTok{add\_row}\NormalTok{(}\AttributeTok{Village =}\NormalTok{ village, }\AttributeTok{Gender =} \StringTok{"Male"}\NormalTok{, }\AttributeTok{Shapiro\_p\_value =} \FunctionTok{round}\NormalTok{(shapiro\_male}\SpecialCharTok{$}\NormalTok{p.value, }\DecValTok{4}\NormalTok{)) }\SpecialCharTok{\%\textgreater{}\%}
+    \FunctionTok{add\_row}\NormalTok{(}\AttributeTok{Village =}\NormalTok{ village, }\AttributeTok{Gender =} \StringTok{"Female"}\NormalTok{, }\AttributeTok{Shapiro\_p\_value =} \FunctionTok{round}\NormalTok{(shapiro\_female}\SpecialCharTok{$}\NormalTok{p.value, }\DecValTok{4}\NormalTok{))  }
+  \CommentTok{\#если обе группы нормально распределены, используем t{-}тест, иначе тест Манна{-}Уитни}
+  \ControlFlowTok{if}\NormalTok{ (shapiro\_male}\SpecialCharTok{$}\NormalTok{p.value }\SpecialCharTok{\textgreater{}} \FloatTok{0.05} \SpecialCharTok{\&}\NormalTok{ shapiro\_female}\SpecialCharTok{$}\NormalTok{p.value }\SpecialCharTok{\textgreater{}} \FloatTok{0.05}\NormalTok{) \{}
+\NormalTok{    test\_result }\OtherTok{\textless{}{-}} \FunctionTok{t.test}\NormalTok{(Age }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Gender, }\AttributeTok{data =}\NormalTok{ data\_village)}
+\NormalTok{    test\_type }\OtherTok{\textless{}{-}} \StringTok{"t{-}test"}
+\NormalTok{  \} }\ControlFlowTok{else}\NormalTok{ \{}
+\NormalTok{    test\_result }\OtherTok{\textless{}{-}} \FunctionTok{wilcox.test}\NormalTok{(Age }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Gender, }\AttributeTok{data =}\NormalTok{ data\_village)}
+\NormalTok{    test\_type }\OtherTok{\textless{}{-}} \StringTok{"Mann{-}Whitney test"}
+\NormalTok{  \}  }
+  \CommentTok{\#p{-}значения и отметки значимости}
+\NormalTok{  p\_value }\OtherTok{\textless{}{-}} \FunctionTok{round}\NormalTok{(test\_result}\SpecialCharTok{$}\NormalTok{p.value, }\DecValTok{4}\NormalTok{)}
+\NormalTok{  significance }\OtherTok{\textless{}{-}} \FunctionTok{ifelse}\NormalTok{(p\_value }\SpecialCharTok{\textless{}} \FloatTok{0.05}\NormalTok{, }\StringTok{"* (p \textless{} 0.05)"}\NormalTok{, }\StringTok{"ns (p \textgreater{}= 0.05)"}\NormalTok{)  }
+  \CommentTok{\#график}
+\NormalTok{  plot }\OtherTok{\textless{}{-}} \FunctionTok{ggplot}\NormalTok{(data\_village, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Gender, }\AttributeTok{y =}\NormalTok{ Age, }\AttributeTok{fill =}\NormalTok{ Gender)) }\SpecialCharTok{+}
+    \FunctionTok{geom\_boxplot}\NormalTok{() }\SpecialCharTok{+}
+    \FunctionTok{labs}\NormalTok{(}
+      \AttributeTok{title =} \FunctionTok{paste}\NormalTok{(}\StringTok{"Village:"}\NormalTok{, village),}
+      \AttributeTok{subtitle =} \FunctionTok{paste}\NormalTok{(test\_type, }\StringTok{"result:"}\NormalTok{, significance),}
+      \AttributeTok{x =} \StringTok{"Gender"}\NormalTok{,}
+      \AttributeTok{y =} \StringTok{"Age"}\NormalTok{,}
+      \AttributeTok{fill =} \StringTok{"Gender"}
+\NormalTok{    ) }\SpecialCharTok{+}
+    \FunctionTok{theme\_minimal}\NormalTok{() }\SpecialCharTok{+}
+    \FunctionTok{scale\_fill\_manual}\NormalTok{(}\AttributeTok{values =} \FunctionTok{c}\NormalTok{(}\StringTok{"Male"} \OtherTok{=} \StringTok{"brown"}\NormalTok{, }\StringTok{"Female"} \OtherTok{=} \StringTok{"lightblue"}\NormalTok{)) }\SpecialCharTok{+}
+    \FunctionTok{theme}\NormalTok{(}
+      \AttributeTok{plot.title =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{size =} \DecValTok{14}\NormalTok{, }\AttributeTok{face =} \StringTok{"bold"}\NormalTok{),}
+      \AttributeTok{plot.subtitle =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{size =} \DecValTok{12}\NormalTok{)}
+\NormalTok{    ) }\SpecialCharTok{+}
+    \FunctionTok{annotate}\NormalTok{(}\StringTok{"text"}\NormalTok{, }\AttributeTok{x =} \FloatTok{1.5}\NormalTok{, }\AttributeTok{y =} \FunctionTok{max}\NormalTok{(data\_village}\SpecialCharTok{$}\NormalTok{Age, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{), }
+             \AttributeTok{label =} \FunctionTok{paste}\NormalTok{(}\StringTok{"p{-}value:"}\NormalTok{, p\_value), }\AttributeTok{size =} \DecValTok{4}\NormalTok{, }\AttributeTok{color =} \StringTok{"black"}\NormalTok{)  }
+\NormalTok{  plots[[village]] }\OtherTok{\textless{}{-}}\NormalTok{ plot}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning in wilcox.test.default(x = DATA[[1L]], y = DATA[[2L]], ...): cannot
+## compute exact p-value with ties
+## Warning in wilcox.test.default(x = DATA[[1L]], y = DATA[[2L]], ...): cannot
+## compute exact p-value with ties
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#все графики}
+\ControlFlowTok{for}\NormalTok{ (p }\ControlFlowTok{in}\NormalTok{ plots) \{}
+  \FunctionTok{print}\NormalTok{(p)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{MidTerm_Project_files/figure-latex/unnamed-chunk-44-1.pdf}
+\includegraphics{MidTerm_Project_files/figure-latex/unnamed-chunk-44-2.pdf}
+\includegraphics{MidTerm_Project_files/figure-latex/unnamed-chunk-44-3.pdf}
+\includegraphics{MidTerm_Project_files/figure-latex/unnamed-chunk-44-4.pdf}
+\includegraphics{MidTerm_Project_files/figure-latex/unnamed-chunk-44-5.pdf}
+\includegraphics{MidTerm_Project_files/figure-latex/unnamed-chunk-44-6.pdf}
+\includegraphics{MidTerm_Project_files/figure-latex/unnamed-chunk-44-7.pdf}
+\includegraphics{MidTerm_Project_files/figure-latex/unnamed-chunk-44-8.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# таблица с результатами теста Шапиро{-}Уилка}
+\FunctionTok{kable}\NormalTok{(shapiro\_results, }\AttributeTok{caption =} \StringTok{"Shapiro{-}Wilk Test Results by Village and Gender"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{longtable}[]{@{}llr@{}}
+\caption{Shapiro-Wilk Test Results by Village and Gender}\tabularnewline
+\toprule\noalign{}
+Village & Gender & Shapiro\_p\_value \\
+\midrule\noalign{}
+\endfirsthead
+\toprule\noalign{}
+Village & Gender & Shapiro\_p\_value \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Bare' Nuevo & Male & 0.5824 \\
+Bare' Nuevo & Female & 0.5255 \\
+Batey Verde & Male & 0.8428 \\
+Batey Verde & Female & 0.1887 \\
+Carmona & Male & 0.1181 \\
+Carmona & Female & 0.0051 \\
+Cojobal & Male & 0.7987 \\
+Cojobal & Female & 0.7272 \\
+Juan Sanchez & Male & 0.8034 \\
+Juan Sanchez & Female & 0.0250 \\
+La Altagracia & Male & 0.1866 \\
+La Altagracia & Female & 0.2058 \\
+Los Gueneos & Male & 0.2172 \\
+Los Gueneos & Female & 0.9923 \\
+San Antonio & Male & 0.4586 \\
+San Antonio & Female & 0.1416 \\
+\end{longtable}
+
+\end{document}
