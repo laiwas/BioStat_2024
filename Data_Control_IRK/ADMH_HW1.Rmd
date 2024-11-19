@@ -1,0 +1,129 @@
+---
+title: "HomeWork_ADHM"
+author: "Andrey Kravets"
+date: "2024-11-18"
+output: html_document
+---
+# Imports
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(readxl)
+library(openxlsx)
+```
+
+# Reading data
+```{r upload}
+adsl = read.xlsx('ADaM-like/ADSL.xlsx')
+
+mh_ds = read.xlsx("./SDTM/MH_MEDICALHISTORY.xlsx")
+```
+
+# Wokring with ADSL
+```{r ADSL columns}
+ids_ds = adsl %>% select(SUBJID, STUDYID, USUBJID, TRTP, TRTPN) %>%
+          mutate(TRTPN = as.numeric(TRTPN))
+```
+
+Возьмём с собой SUBJID - потом выкинем
+
+# Working with MHTERM
+
+"Обратите внимание на содержимое переменной MHTERM, не во всех строках оно несет наполнение, что с этим нужно сделать?". В спецификации ADAMH имеем следующее: "One record per subject per each MH recorded in SDTM MH domain" - поэтому мы "фильтруем" пустые строчки и оставляем строчки с заполненной MHTERM, если для сабджекта есть несколько записей, оставляем каждую запись отдельной строчкой.
+
+Разбираемся с диагнозами:
+```{r MHTERM}
+mhterm_ds = mh_ds %>% select(SUBJID, MHSEQ, MHCAT, MHTERM, MHDECOD, MHBODSYS) %>%
+      group_by(SUBJID) %>% filter(MHCAT == "Medical History", !is.na(MHTERM)) %>%
+      mutate(MHSEQ = as.numeric(MHSEQ)) %>% ungroup()
+```
+
+Разбираемся с датами начала:
+```{r MHTERM dates}
+mhterm_dates = mh_ds %>% filter(MHCAT == "Medical History", !is.na(MHTERM)) %>% 
+  select(SUBJID, MHSTDTC, MHSEQ) %>%
+  mutate(MHSEQ = as.numeric(MHSEQ)) %>%
+  mutate(MHSTDTC_imputed = if_else(nchar(MHSTDTC)>9, MHSTDTC, 
+         if_else(nchar(MHSTDTC)>5, paste0(MHSTDTC, "-01"), paste0(MHSTDTC, "-01-01")
+                 ))) %>%
+  mutate(ASTDT = format(as.Date(MHSTDTC_imputed, format = "%Y-%m-%d"),"%d.%m.%y")) %>%
+  mutate(
+    ASTDTF = case_when(
+      !is.na(MHSTDTC) & grepl("^\\d{4}-\\d{2}-\\d{2}$", MHSTDTC) ~ "NaN",
+      !is.na(MHSTDTC) & grepl("^\\d{4}-\\d{2}$", MHSTDTC) ~ "D",
+      !is.na(MHSTDTC) & grepl("^\\d{4}$", MHSTDTC) ~ "M",
+      is.na(MHSTDTC) ~ "Y"
+    )
+  ) %>%
+  select(SUBJID, MHSTDTC, ASTDT, MHSEQ, ASTDTF)
+
+mhterm_dates
+```
+"If start date is completely missing or missing the year then ASTDTF is ’Y’
+Else if start date has month missing then ASTDTF is ’M’
+Else if start date has day missing then ASTDTF is ’D’" - т.к. у нас есть случаи, когда нет ни месяца, ни дня, то их отнесем в группу "M" (как высший разряд отсутствующих данных).
+
+Разбираемся с датами начала:
+```{r MHTERM dates}
+mhterm_end_dates = mh_ds %>% filter(MHCAT == "Medical History", !is.na(MHTERM)) %>% 
+  select(SUBJID, MHENDTC,	MHENRTPT,	MHENTPT, MHSEQ, MHTERM, MHENRTPT) %>%
+  mutate(MHSEQ = as.numeric(MHSEQ)) %>% 
+  mutate(MHENDTC = as.character(MHENDTC),
+    MHENDTC_imputed = case_when(
+      is.na(MHENDTC) ~ MHENDTC,
+      nchar(MHENDTC) > 9 ~ MHENDTC,
+      nchar(MHENDTC) > 5 ~ paste0(MHENDTC, "-01"),  
+      nchar(MHENDTC) > 3 ~ paste0(MHENDTC, "-01-01")
+    ))%>%
+  mutate(AENDT = if_else(MHENRTPT == 'ONGOING', "",
+                         format(as.Date(MHENDTC_imputed, 
+                                format = "%Y-%m-%d"),"%d.%m.%y"))) %>%
+  mutate(
+    AENDTF = case_when(
+      !is.na(MHENDTC) & grepl("^\\d{4}-\\d{2}-\\d{2}$", MHENDTC) ~ "NaN",
+      !is.na(MHENDTC) & grepl("^\\d{4}-\\d{2}$", MHENDTC) ~ "D",
+      !is.na(MHENDTC) & grepl("^\\d{4}$", MHENDTC) ~ "M",
+      is.na(MHENDTC) ~ "Y"
+    )
+  ) %>%
+  mutate(MHENRF = if_else(MHENRTPT == 'ONGOING', MHENRTPT, ""))
+
+mhterm_end_dates
+```
+# Joining and finalizing ADMH
+```{r joins}
+ADMH <- left_join(mhterm_ds, ids_ds)
+ADMH <- left_join(ADMH, mhterm_dates)
+ADMH <- left_join(ADMH, mhterm_end_dates)
+
+ADMH
+```
+
+```{r joins}
+ADMH = ADMH %>%
+  select(STUDYID, USUBJID, TRTP, TRTPN, MHSEQ, MHCAT,
+         MHTERM, MHDECOD, MHBODSYS, MHSTDTC, ASTDT, ASTDTF, MHENDTC,
+         AENDT, AENDTF, MHENRTPT, MHENRF)
+```
+
+Очень важно при конструировании ADSL проверять, что у нас:
+
+а) есть все необходимые переменные;
+
+б) они имеют корректные типы! 
+
+в) и корректные форматы.
+
+```{r adsl}
+ADMH = ADMH %>%
+  select(STUDYID, USUBJID, TRTP, TRTPN, MHSEQ, MHCAT,
+         MHTERM, MHDECOD, MHBODSYS, MHSTDTC, ASTDT, ASTDTF, MHENDTC,
+         AENDT, AENDTF, MHENRTPT, MHENRF)
+
+summary(ADMH)  
+```
+
+
+```{r}
+write.xlsx(ADMH, "./ADaM-like/ADMH.xlsx")
+```
