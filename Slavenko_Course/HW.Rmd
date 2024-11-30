@@ -1,0 +1,397 @@
+---
+title: "Multiple Comparisons HW1"
+author: "Andrey Kravets"
+date: "06.11.2024"
+editor_options:
+  markdown:
+    wrap: sentence
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+
+library(dplyr)
+library(tidyr)
+library(kableExtra)
+library(mvtnorm)
+library(ggplot2)
+library(purrr)
+
+#source("scratches.R")
+```
+
+# Задание
+
+Есть ли разница между средним ростом футболистов, играющих на разных позициях?
+1.
+Постройте доверительные интервалы для попарных разниц между средними (без поправок и с поправкой Бонферрони).
+Покрывают ли интервалы реальную разницу между средним ростом?
+Иллюстрации приветствуются.
+2.
+Проведите попарные тесты для разниц между средними (без поправок, с поправкой Холма и поправкой Бенджамини-Хохберга).
+Сколько открытий получилось в каждом случае?
+Сколько из них ложные?
+
+Hint: вам может пригодиться функция pairwise.t.test.
+Hint 2: параметр задайте параметр pool.sd = FALSE.
+
+## Подготовка
+
+Let's state alpha = 0.05
+
+```{r plot-functions, include = FALSE}
+add_vert_line <- function(x, a, b, ...){
+  lines(x = rep(x, 2), 
+        y = c(a, b), ...)
+}
+
+plot.playground <-
+  function(x, y, true.x = NULL, true.y = NULL, xlab = "X", ylab = "Y", square = FALSE) {
+    # Prepare the canvas
+    plot(
+      x = x,
+      y = y,
+      type = "n",
+      frame.plot = FALSE,
+      xlab = xlab,
+      ylab = ylab
+    )
+    
+    # Plot Y rug 
+    rug(y, side = 2, col = "cadetblue")
+  
+    
+    # Plot X rug
+    rug(x, col = "salmon3")
+    
+    if(square){
+      plot.square(x, y, true.x, true.y)
+    }
+    
+  }
+
+
+
+plot.square <- function(x, y, true.x = NULL, true.y = NULL, alpha = 0.05){
+  
+  x.confint <- t.test(x, conf.level = 1 - alpha)$conf.int[c(1, 2)]
+  y.confint <- t.test(y, conf.level = 1 - alpha)$conf.int[c(1, 2)]
+  
+  abline(h = true.y, col = "deepskyblue3", lty = 5)
+  abline(v = true.x, col = "deepskyblue3", lty = 5)
+  
+  points(true.x, true.y, col = "deepskyblue3", pch = 18, cex = 2)
+  
+  if(is.null(true.x)){
+    col.x <- "grey40"
+  } else if(x.confint[1] <= true.x & true.x <= x.confint[2]){
+    col.x <- "darkolivegreen3"
+  } else {
+    col.x <- "brown2"
+  }
+  
+  if(is.null(true.y)){
+    col.y <- "grey40"
+  } else if(y.confint[1] <= true.y & true.y <= y.confint[2]){
+    col.y <- "darkolivegreen3"
+  } else {
+    col.y <- "brown2"
+  }
+  
+  lines(x = x.confint, y = rep(y.confint[1], 2), col = col.x, lwd = 2)
+  lines(x = x.confint, y = rep(y.confint[2], 2), col = col.x, lwd = 2)
+  
+  
+  lines(y = y.confint, x = rep(x.confint[1], 2), col = col.y, lwd = 2)
+  lines(y = y.confint, x = rep(x.confint[2], 2), col = col.y, lwd = 2)
+}
+
+soccer_general <- read.csv("soccer.csv", sep=";")[, 2:6] %>%
+  mutate(Position = as.factor(Position),
+         Nationality = as.factor(Nationality),
+         Age = as.numeric(Age),
+         Height = as.numeric(Height)) %>%
+  filter(Nationality %in% c("Spanish", "Italian", "German", "English", "Argentinian"))
+
+set.seed(1)
+
+soccer_wrk <- soccer_general[sample(1:nrow(soccer_general), 50), ] %>%
+  mutate(Nationality = factor(Nationality))
+```
+
+```{r}
+summary(soccer_wrk)
+```
+```{r}
+standardize_groups <- function(tbl) {
+  tbl %>%
+    mutate(
+      new_group1 = if_else(group1 < group2, group1, group2),
+      new_group2 = if_else(group1 < group2, group2, group1)
+    ) %>%
+    select(-group1, -group2) %>%
+    rename(group1 = new_group1, group2 = new_group2)
+}
+```
+
+
+```{r}
+general_stats = soccer_general %>%
+  group_by(Position) %>%
+  summarise(
+    Mean_Height = mean(Height),
+    SD = sd(Height),
+    N = n(),
+    #SEM = SD / sqrt(N)
+  )
+
+general_pairwise_combinations <- combn(general_stats$Position, 2, simplify = FALSE) %>%
+  map_df(~ tibble(group1 = .x[1], group2 = .x[2]))
+
+gen_pairwise_stats <- general_pairwise_combinations %>%
+  left_join(general_stats, by = c("group1" = "Position")) %>%
+  rename(mean1 = Mean_Height, N1=N, SD1=SD) %>%
+  left_join(general_stats, by = c("group2" = "Position")) %>%
+  rename(mean2 = Mean_Height, N2=N, SD2=SD) %>%
+  mutate(group1=as.character(group1), group2=as.character(group2)) %>%
+  standardize_groups(.) %>%
+  mutate(gen_mean_diff = mean1-mean2, gen_diff_SE=sqrt((SD2**2)/N2+(SD1**2)/N1)) %>% 
+  select(group1, group2, gen_mean_diff, gen_diff_SE) %>%
+  mutate(CI_low_gen = gen_mean_diff - qt(0.975, df=Inf) * gen_diff_SE,
+         CI_upp_gen = gen_mean_diff + qt(0.975, df=Inf) * gen_diff_SE,)
+
+gen_pairwise_stats
+```
+
+```{r}
+gen_pairwise_stats %>% mutate(comparison=paste(group1, "vs.", group2)) %>% 
+  ggplot(aes(x = gen_mean_diff, y = comparison)) +
+  geom_point(size = 3) +
+  geom_errorbarh(
+    aes(xmin = CI_low_gen, xmax = CI_upp_gen),
+    height = 0.2, alpha = 0.7
+  ) + geom_vline(xintercept=0, color='red', linetype='dashed') +
+  labs(
+    title = "Forest Plot of Pairwise Comparisons GENERAL POP",
+    x = "Mean Difference in Height",
+    y = "Comparison",
+    color = "Confidence Interval"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.title.y = element_blank(),
+    legend.position = "bottom"
+  )
+```
+
+Dots = Mean difference in general population.
+CI was made using normal distribution and SE in general population.
+
+Видим, что в ген.
+совокупности много разниц на самом деле являются стат.значимыми.
+
+# Первая часть - ДИ
+
+## Без поправки Бонферрони
+
+```{r}
+group_stats <- soccer_wrk %>%
+  group_by(Position) %>%
+  summarise(
+    Mean_Height = mean(Height),
+    SD = sd(Height),
+    N = n(),
+    SEM = SD / sqrt(N)
+  )
+
+pairwise_results <- pairwise.t.test(
+  soccer_wrk$Height, 
+  soccer_wrk$Position, 
+  p.adjust.method = "none", 
+  pool.sd = TRUE
+) %>% broom::tidy() %>% standardize_groups(.)
+
+pairwise_results <- pairwise_results %>%
+  left_join(group_stats, by = c("group1" = "Position")) %>%
+  rename(n1 = N, mean1 = Mean_Height, std1 = SD)
+
+pairwise_results <- pairwise_results %>%
+  left_join(group_stats, by = c("group2" = "Position")) %>%
+  rename(n2 = N, mean2 = Mean_Height, std2 = SD)
+
+pairwise_results <- pairwise_results %>% 
+  mutate(mean_difference = mean1-mean2, 
+                            std_mean = sqrt((std1**2)/n1 + (std2**2)/n2),
+                            df = n1+n2-2) %>%
+  select(group1, group2, p.value, df, mean_difference, std_mean) %>%
+  mutate(
+    CI_Lower = mean_difference - qt(0.975, df = df) * std_mean,
+    CI_Upper = mean_difference + qt(0.975, df = df) * std_mean
+  ) %>% select(group1, group2, CI_Lower, CI_Upper)
+pairwise_results
+```
+
+```{r}
+combined_table <- full_join(
+  gen_pairwise_stats,
+  pairwise_results,
+  by = c("group1", "group2"),
+  suffix = c("_gen", "_pairwise")
+) %>% mutate(comparison=paste(group1, "vs.", group2))
+```
+
+```{r}
+ggplot(combined_table, aes(x = gen_mean_diff, y = comparison)) +
+  geom_point(size = 3) +
+  geom_errorbarh(
+    aes(xmin = CI_Lower, xmax = CI_Upper),
+    height = 0.2, alpha = 0.7
+  ) + geom_vline(xintercept=0, color='red', linetype='dashed') +
+  labs(
+    title = "Forest Plot of Pairwise Comparisons",
+    x = "Mean Difference in Height",
+    y = "Comparison",
+    color = "Confidence Interval"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.title.y = element_blank(),
+    legend.position = "bottom"
+  )
+```
+
+Dots = Mean difference in general population.
+CI from our sample.
+
+Итого: на самом деле, получилось, что все CI покрывают ту разницу, которую мы видим в нашей заявленной "генеральной совокупности".
+Но давайте отметим что в случае Defender vs. Midfielder истинная разница очень близка к левой границе ДИ.
+NB!
+в нашей выборке 50 футболистов
+
+Теперь посмотрим на Бонферрони.
+## С поправкой Бонферрони
+
+```{r}
+group_stats <- soccer_wrk %>%
+  group_by(Position) %>%
+  summarise(
+    Mean_Height = mean(Height),
+    SD = sd(Height),
+    N = n(),
+    SEM = SD / sqrt(N)
+  )
+
+pairwise_results <- pairwise.t.test(
+  soccer_wrk$Height, 
+  soccer_wrk$Position, 
+  p.adjust.method = "bonferroni", 
+  pool.sd = TRUE
+) %>% broom::tidy()
+
+pairwise_results <- pairwise_results %>%
+  left_join(group_stats, by = c("group1" = "Position")) %>%
+  rename(n1 = N, mean1 = Mean_Height, std1 = SD)
+
+pairwise_results <- pairwise_results %>%
+  left_join(group_stats, by = c("group2" = "Position")) %>%
+  rename(n2 = N, mean2 = Mean_Height, std2 = SD)
+
+pairwise_results <- pairwise_results %>% mutate(mean_difference = mean2-mean1, 
+                            std_mean = sqrt((std1**2)/n1 + (std2**2)/n2),
+                            df = n1+n2-2) %>%
+  select(group1, group2, p.value, df, mean_difference, std_mean) %>%
+  mutate(
+    Bonferroni_Adjusted_CI_Lower = mean_difference - qt(1 - (0.025 / 6), df = df)*std_mean,
+    Bonferroni_Adjusted_CI_Upper = mean_difference + qt(1 - (0.025 / 6), df = df)*std_mean,
+  ) %>% select(group1, group2, Bonferroni_Adjusted_CI_Lower, Bonferroni_Adjusted_CI_Upper)
+pairwise_results
+```
+
+```{r}
+pairwise_results <- standardize_groups(pairwise_results)
+
+combined_table <- full_join(
+  gen_pairwise_stats,
+  pairwise_results,
+  by = c("group1", "group2"),
+  suffix = c("_gen", "_pairwise")
+) %>% mutate(comparison=paste(group1, "vs.", group2))
+
+
+ggplot(combined_table, aes(x = gen_mean_diff, y = comparison)) +
+  geom_point(size = 3) +
+  geom_errorbarh(
+    aes(xmin = Bonferroni_Adjusted_CI_Lower, 
+        xmax = Bonferroni_Adjusted_CI_Upper),
+    height = 0.2, alpha = 0.7
+  ) + geom_vline(xintercept=0, color='red', linetype='dashed') +
+  labs(
+    title = "Forest Plot of Pairwise Comparisons",
+    x = "Mean Difference in Height",
+    y = "Comparison",
+    color = "Confidence Interval"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.title.y = element_blank(),
+    legend.position = "bottom"
+  )
+```
+
+Итого: тут у нас тоже получилось, что все CI покрывают ту разницу, которую мы видим в нашей заявленной "генеральной совокупности".
+Возвращаясь к Defender vs. Midfielder - по сравнению с ДИ без поправки, теперь у нас левая граница ДИ дальше от истинной разницы.
+
+Заметим ещё, что при сравнении Goalkeeper vs. Midfielder при нашей поправке мы перешли за 0, по сравнению с предыдущим графиком.
+
+# Часть 2
+
+## Без поправки
+
+```{r}
+pairwise_results <- pairwise.t.test(
+  soccer_wrk$Height, 
+  soccer_wrk$Position, 
+  p.adjust.method = "none", 
+  pool.sd = TRUE
+) %>% broom::tidy() %>% mutate(Significant = if_else(p.value < 0.05, TRUE, FALSE))
+
+pairwise_results
+```
+
+Без поправки у нас стат.
+значимы разницы между Midfielder vs. Defender; Midfielder vs. Goalkeeper.
+
+## Холма
+
+```{r}
+pairwise_results <- pairwise.t.test(
+  soccer_wrk$Height, 
+  soccer_wrk$Position, 
+  p.adjust.method = "holm", 
+  pool.sd = TRUE
+) %>% broom::tidy() %>% mutate(Significant = if_else(p.value < 0.05, TRUE, FALSE))
+
+pairwise_results
+```
+
+## Бенджамини-Хохберга
+
+```{r}
+pairwise_results <- pairwise.t.test(
+  soccer_wrk$Height, 
+  soccer_wrk$Position, 
+  p.adjust.method = "BH", 
+  pool.sd = TRUE
+) %>% broom::tidy() %>% mutate(Significant = if_else(p.value < 0.05, TRUE, FALSE))
+
+pairwise_results
+```
+
+В нашем случае: получилось, что поправки "убили" стат.
+значимую разницу в случае Midfilder vs. Goalkeeper, но "сохранили" стат.значимость в случае Midfielder vs. Defender.
+
+Говоря про истинность, я бы отметил следующее: если взять Midfilder vs. Goalkeeper, то по нашей "генеральной совокупности" разницы в росте между этими позициями есть и она достаточно большая.
+В нашей выборки без поправки т-тест "смог найти" эту разницу, но при наших поправках Холма, БХ p \> 0.05 (alpha) стал и мы потеряли стат.
+значимость.
+Это показывает, что при поправках мы теряем мощность, но обезопашиваем себя от увеличения ошибки первого рода.
