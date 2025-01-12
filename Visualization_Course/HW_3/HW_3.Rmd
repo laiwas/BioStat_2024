@@ -1,0 +1,395 @@
+---
+title: "HW_3"
+author: "Andrei Kravets"
+date: "2024-01-12"
+output: html_document
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(summarytools)
+library(rstatix)
+library(GGally)
+library(factoextra)
+library(ggpubr)
+library(ggbiplot)
+library(tidymodels)
+library(skimr)
+library(corrplot)
+```
+
+# Data Import
+
+```{r}
+data <- readRDS("very_low_birthweight.RDS")
+```
+
+# Задание 1 1
+
+Загрузите датасет very_low_birthweight.RDS (лежит в папке домашнего
+задания). Это данные о 671 младенце с очень низкой массой тела (\<1600
+грамм), собранные в Duke University Medical Center доктором Майклом О'Ши
+c 1981 по 1987 г.\
+Описание переменных см. здесь. Переменными исхода являются колонки
+'dead', а также время от рождения до смерти или выписки (выводятся из
+'birth' и 'exit' 7 пациентов были выписаны до рождения). Сделайте копию
+датасета, в которой удалите колонки с количеством пропусков больше 100,
+а затем удалите все строки с пропусками.
+
+```{r}
+data %>% 
+  head()
+```
+
+```{r}
+cols_to_select <- data %>%
+  summarise(across(everything(), ~ sum(is.na(.)))) %>%
+  pivot_longer(everything(), names_to = "column", values_to = "NA_count") %>%
+  filter(NA_count <= 100) %>%
+  pull(column)
+
+data_filtered = data %>% 
+  select(all_of(cols_to_select)) %>% 
+  na.omit()
+
+data_filtered %>%
+  write_csv("Low_BirthWeight_filtered_data.csv")
+```
+
+# Задание 2
+
+Постройте графики плотности распределения для числовых переменных.
+Удалите выбросы, если таковые имеются. Преобразуйте категориальные
+переменные в факторы. Для любых двух числовых переменных раскрасьте
+график по переменной 'inout'.
+
+```{r}
+skim(data_filtered)
+```
+
+```{r}
+data_filtered %>% head()
+```
+
+```{r, fig.height=7, fig.width=8}
+data_filtered <- data_filtered %>% 
+  mutate(across(where(is.factor), as.factor),
+         across(where(~ is.numeric(.) && all(. %in% c(0, 1))), as.factor))
+
+data_filtered %>% 
+  select(where(is.numeric), inout) %>% 
+  pivot_longer(cols = where(is.numeric) & !inout, names_to = "column", values_to = "value") %>% 
+  ggplot(aes(x = value, fill = inout)) +
+  geom_histogram(bins = 12, color = "black") +
+  facet_wrap(~column, scales = "free_x") + 
+  theme_minimal()
+```
+
+```{r}
+skim(data_filtered)
+```
+### Удаление аутлайеров
+
+Видим, что точно есть что-то странное в колонке hospstay - отрицательные значения. Посмотрим на них:
+
+```{r}
+data_filtered %>% filter(hospstay < 0) %>% select(birth,exit, hospstay, dead) %>% mutate(hosp_calc = exit-birth)
+```
+Вот -200 тут совсем странно выглядит, но не совсем понятно, почему у некоторых детей -2 стоит в значениях. МНе кажется, что это ошибка занесения и что на самом деле, тут должны быть 0 (как для большинства детей).
+
+Еще видим, что у есть странные выбросы по pltct и lowph - низкие значения. Для их фильтрации возьмём 1.5 IQR метод (Значения должны быть между Q1-1.5IQR, Q3+1.5IQR).
+
+UPD: потом нашёлся аутлайер по hospstay (>700 days) - его тоже пофильтруем по. Возьмём <400 days.
+
+Итого:
+```{r}
+data_filtered_outliers <- data_filtered %>% 
+  filter(hospstay >= -3 & hospstay < 400,
+         pltct < quantile(pltct, 0.75, na.rm = TRUE) + 1.5 * IQR(pltct, na.rm = TRUE) &
+         pltct > quantile(pltct, 0.25, na.rm = TRUE) - 1.5 * IQR(pltct, na.rm = TRUE),
+         lowph < quantile(lowph, 0.75, na.rm = TRUE) + 1.5 * IQR(lowph, na.rm = TRUE) &
+         lowph > quantile(lowph, 0.25, na.rm = TRUE) - 1.5 * IQR(lowph, na.rm = TRUE)
+          )
+```
+
+Все отфильтровали, было 531 наблюдение - стало 515.
+
+```{r, fig.height=7, fig.width=8}
+data_filtered_outliers %>% 
+  select(where(is.numeric), inout) %>% 
+  pivot_longer(cols = where(is.numeric) & !inout, names_to = "column", values_to = "value") %>% 
+  ggplot(aes(x = value, fill = inout)) +
+  geom_histogram(bins = 12, color = "black") +
+  facet_wrap(~column, scales = "free_x") + 
+  theme_minimal()
+```
+# Задание 3
+
+Проведите тест на сравнение значений колонки 'lowph' между группами в
+переменной inout. Вид статистического теста определите самостоятельно.
+Визуализируйте результат через библиотеку 'rstatix'. Как бы вы
+интерпретировали результат, если бы знали, что более низкое значение
+lowph ассоциировано с более низкой выживаемостью?
+
+```{r}
+library(rstatix)
+data_filtered_outliers %>% 
+  group_by(inout) %>% 
+  select(inout, lowph) %>% 
+  dfSummary()
+```
+
+```{r}
+data_filtered_outliers %>%
+  t_test(lowph ~ inout) %>%
+  add_significance()
+```
+```{r}
+data_filtered_outliers %>% select(inout, lowph) %>%
+  pivot_longer(cols = lowph, names_to='lowph', values_to='value') %>%
+  ggplot(aes(x = lowph, y = value, fill=inout)) +
+  geom_boxplot() +
+  theme_minimal()
+```
+
+Анализ показал, что уровень рН у пациентов, транспортированных из других учреждений, значительно ниже, чем у новорожденных в госпитале Duke (MD = 0.084, 95% CI: [0.055; 0.114], p < 0.0001). Поскольку, предположительно, снижение уровня рН ассоциируется с повышенной смертностью, можно сделать вывод, что транспортировка пациентов может быть потенциальным фактором риска, способствующим увеличению вероятности летального исхода.
+
+# Задание 4
+
+Сделайте новый датафрейм, в котором оставьте только континуальные или ранговые 
+данные, кроме 'birth', 'year' и 'exit'. Сделайте корреляционный анализ этих 
+данных. Постройте два любых типа графиков для визуализации корреляций.
+
+```{r, fig.height=8, fig.width=8, figure.dpi=200}
+corr_data <- data_filtered_outliers %>% 
+  select(where(is.numeric), -c(birth, year, exit))
+```
+
+```{r, fig.height=8, fig.width=8, figure.dpi=200}
+сorr_map = cor(corr_data)
+corrplot(сorr_map, method = "color", type = "lower", 
+         addCoef.col = "grey30", diag = FALSE,
+         cl.pos = "b", tl.col = "grey10",
+         col = COL2('RdBu', 10))
+```
+```{r}
+library(corrr)
+
+сorr_map %>% 
+  network_plot(min_cor = .0)
+```
+Время беременности коррелирует с весом плода.
+
+# Задание 5
+
+Постройте иерархическую кластеризацию на этом датафрейме.
+
+```{r, }
+data_filtered_outliers <- data_filtered_outliers %>% 
+  mutate(ID = c(1:nrow(data_filtered_outliers)))
+
+rownames(data_filtered_outliers) <- data_filtered_outliers$ID
+
+res <- data_filtered_outliers %>% 
+  select(where(is.numeric), -c(ID, birth, year, exit)) %>%
+  scale() %>% 
+  dist(method = "euclidean") %>% 
+  hclust(method = "ward.D2") 
+res %>% 
+  fviz_dend(cex = 0.2, 
+            k = 4, 
+            k_colors = "jco")
+```
+Нашёлся ещё какой-то аутлайер - попал в отдельный кластер. UPD там по hospstay был. Пофильтровал выше и поменял графики.
+Получили 4 кластера.
+
+# Задание 6
+
+Сделайте одновременный график heatmap и иерархической кластеризации. 
+Интерпретируйте результат.
+
+```{r, fig.height=8, fig.width=6, figure.dpi=200}
+data_filtered_outliers %>% 
+  select(where(is.numeric), -c(ID, birth, year, exit)) %>%
+  scale() %>% 
+  pheatmap::pheatmap(color=colorRampPalette(c("#433CE1", "grey90", "#E13C59"))(50), 
+                     fontsize_row = 0.00001, fontsize_col = 10, angle_col = 0)
+```
+
+```{r, fig.height=4, fig.width=8, figure.dpi=200}
+data_filtered_outliers %>% 
+  select(where(is.numeric), -c(ID, birth, year, exit)) %>%
+  scale() %>% 
+  pheatmap::pheatmap(color=colorRampPalette(c("#433CE1", "grey90", "#E13C59"))(50), 
+                     fontsize_row = 0.00001, fontsize_col = 8, angle_col = 0, kmeans_k=4)
+```
+Пользуясь тем, что в иерархической кластеризации мы остановились на 4 кластерах. Тут тоже сфокусируемся на 4 кластерах.
+Видим, что есть кластер (самый низкий) с очень высоким hospstay и низким bwt => что логично, дети с низким весом требуют ухода и присмотра врачей.
+
+Первый кластер (самый высокий) с самым низким относительный hospstay, высоким bwt, lowph, pltct => дети, которые были +- здоровые, поэтому быстро были выписаны.
+
+Два кластера посредеине со средним hospstay, но различающиеся по средним уровням клинических метрик для детей. Вот эти кластера, по-хорошему, надо бы ещё поделить и посмотреть, что в них внутри.
+
+# Задание 7
+Проведите PCA анализ на этих данных. Проинтерпретируйте результат. Нужно ли 
+применять шкалирование для этих данных перед проведением PCA?
+
+В нашем случае: во-первых, удалим не нужные колонки, которые являются датой, которая нам ничего не даст в рамках EDA;
+во-вторых, шкалируем, т.к. скейлы колонок разные!
+
+```{r, fig.height=6, fig.width=6, figure.dpi=200}
+pca_data = data_filtered_outliers %>% 
+  select(where(is.numeric), -c(ID, birth, year, exit)) %>% 
+  scale() %>%
+  prcomp(scale=TRUE)
+
+fviz_eig(pca_data, 
+         addlabels = T, 
+         ylim = c(0, 50))
+```
+```{r}
+pca_scores <- as.data.frame(pca_data$x)
+
+ggplot(pca_scores, aes(x = PC1, y = PC2)) +
+  geom_point(color = "steelblue", size = 2) +
+  theme_minimal() +
+  labs(
+    title = "PCA Plot",
+    x = "Principal Component 1",
+    y = "Principal Component 2"
+  )
+```
+Видим, что сильных аутлайеров у нас нет. Первые две компоненты объясняют 60% дисперсии в данных, что достаточно много.
+
+# Задание 8
+Постройте biplot график для PCA. Раскрасьте его по значению колонки 'dead'.
+
+```{r, fig.height=6, fig.width=8, figure.dpi=200}
+ggbiplot(pca_data, choices=1:2,
+         scale=1, alpha = 0.5, groups = as.factor(data_filtered_outliers$dead)) + 
+  theme_bw()
+```
+У нас много корреляций между hospstay и остальными числовыми колонками, поэтому первая компоненты такая сильная.
+
+# Задание 9
+Переведите последний график в 'plotly'. При наведении на точку нужно, чтобы 
+отображалось id пациента.
+
+```{r}
+pca_scores <- as.data.frame(pca_data$x) %>%
+  mutate(ID = data_filtered_outliers$ID,
+         group = as.factor(data_filtered_outliers$dead))
+
+library(plotly)
+plot_ly(
+  data = pca_scores,
+  x = ~PC1,
+  y = ~PC2,
+  type = 'scatter',
+  mode = 'markers',
+  color = ~group,
+  text = ~paste('ID:', ID),  # Текст для отображения при наведении
+  hoverinfo = 'text'
+) %>%
+  layout(
+    title = 'PCA Plot (PC1 vs PC2)',
+    xaxis = list(title = 'Principal Component 1'),
+    yaxis = list(title = 'Principal Component 2'),
+    legend = list(title = list(text = 'Group'))
+  )
+```
+
+# Задание 10
+
+Дайте содержательную интерпретацию PCA анализу. Почему использовать колонку 
+'dead' для выводов об ассоциации с выживаемостью некорректно? 
+
+Используя свой опыт из онкологии могут сказать следущее: события dead = 1 (смерть), dead = 0 (цензурирование), могли произойти по многим причинам: ребенку действительно было плохо, халатность врачей, случайная трагедия и т.д. Поэтому для оценки выживаемости колонку исхода всегда используют вместе с самой выживаемостью (в днях, например).
+
+# Задание 11
+
+Приведите ваши данные к размерности в две колонки через UMAP. Сравните 
+результаты отображения точек между алгоритмами PCA и UMAP
+
+```{r, message=FALSE,warning=FALSE}
+library(embed)
+
+umap_data = data_filtered_outliers %>% select(where(is.numeric), -c(ID, birth, year, exit))
+umap_prep <- recipe(~., data = umap_data) %>% # "техническая" строка, нужная для работы фреймворка tidymodels
+  step_normalize(all_predictors()) %>%
+  step_umap(all_predictors()) %>%
+  prep() %>%
+  juice()
+```
+
+```{r}
+umap_scores <- as.data.frame(umap_prep) %>%
+  mutate(group = as.factor(data_filtered_outliers$dead))
+
+umap_scores %>%
+  ggplot(aes(x=UMAP1, y=UMAP2, color=group)) + #  # можно добавить раскраску 
+  geom_point(alpha = 0.7, size = 2) +
+  labs(color = NULL) +
+  theme_minimal()
+```
+
+# Задание 12
+Давайте самостоятельно увидим, что снижение размерности – это группа методов, славящаяся своей неустойчивостью. Измените основные параметры UMAP (n_neighbors и min_dist) и проанализируйте, как это влияет на результаты.
+
+```{r, message=FALSE,warning=FALSE}
+umap_data = data_filtered_outliers %>% select(where(is.numeric), -c(ID, birth, year, exit))
+umap_prep <- recipe(~., data = umap_data) %>% # "техническая" строка, нужная для работы фреймворка tidymodels
+  step_normalize(all_predictors()) %>%
+  step_umap(all_predictors(), min_dist=0.001, neighbors=5) %>%
+  prep() %>%
+  juice()
+
+umap_scores <- as.data.frame(umap_prep) %>%
+  mutate(group = as.factor(data_filtered_outliers$dead))
+
+umap_scores %>%
+  ggplot(aes(x=UMAP1, y=UMAP2, color=group)) + #  # можно добавить раскраску 
+  geom_point(alpha = 0.7, size = 2) +
+  labs(color = NULL) +
+  theme_minimal()
+```
+```{r, message=FALSE,warning=FALSE}
+umap_data = data_filtered_outliers %>% select(where(is.numeric), -c(ID, birth, year, exit))
+umap_prep <- recipe(~., data = umap_data) %>% # "техническая" строка, нужная для работы фреймворка tidymodels
+  step_normalize(all_predictors()) %>%
+  step_umap(all_predictors(), min_dist=0.5, neighbors=15) %>%
+  prep() %>%
+  juice()
+
+umap_scores <- as.data.frame(umap_prep) %>%
+  mutate(group = as.factor(data_filtered_outliers$dead))
+
+umap_scores %>%
+  ggplot(aes(x=UMAP1, y=UMAP2, color=group)) + #  # можно добавить раскраску 
+  geom_point(alpha = 0.7, size = 2) +
+  labs(color = NULL) +
+  theme_minimal()
+```
+По мои оценкам: neighbors сильнее влияет на график UMAP, чем min_dist. Neighbors влияет на "кластеризацию точек", а мин-дист больше на их разброс.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
